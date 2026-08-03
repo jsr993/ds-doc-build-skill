@@ -4,17 +4,29 @@
 
 Страницы файла: `documentation components` (движок: секции `pattern` — шаблоны страниц, `components` — атомы), `example` (поколение 1.0, образец объёма и тона текстов, **не структуры**), `cover`.
 
+## Библиотека
+
+Опубликованное имя библиотеки движка — **«Component Spec Kit»**. Без её компонентов документация не собирается.
+
+Проверять до всего остального: `figma.teamLibrary.getAvailableLibraryVariableCollectionsAsync()` вернёт коллекции подключённых библиотек с полем `libraryName`. Есть «Component Spec Kit» — работаем. Нет, но в файле лежат локальные `ds-*` и коллекция `decoration` — это дубликат шаблона, работать можно, но предупредить. Ни того ни другого — остановиться и попросить человека подключить библиотеку через `Assets` → `Libraries`.
+
+**Подключить библиотеку из кода нельзя** — Plugin API этого не умеет.
+
 ## Как находить движок
 
-Порядок разрешения, сверху вниз. Первый сработавший способ и используется.
+| Движок | Способ |
+|---|---|
+| локально в файле | по **точному имени**, обходом страниц: `findAllWithCriteria({ types: ["COMPONENT", "COMPONENT_SET"] })` |
+| подключён как библиотека | **только по `key`** через `importComponentByKeyAsync` |
+| файл-первоисточник | node-id как быстрый путь |
 
-1. **По имени в текущем файле** — основной способ. Обход страниц через `findAllWithCriteria({ types: ["COMPONENT", "COMPONENT_SET"] })`, отбор по **точному** имени. Работает в любой копии.
-2. **По `key` через `importComponentByKeyAsync`** — если движок подключён как внешняя библиотека.
-3. **По node-id** — только как быстрый путь в файле-первоисточнике.
+**Компоненты подключённой библиотеки по имени не находятся.** Plugin API не умеет их перечислять: в файле их физически нет, обход страниц вернёт пусто. Единственный путь — импорт по ключу.
+
+Ключи ниже — от библиотеки владельца. Пользователь, опубликовавший **свою** копию, получит другие: тогда попросить один раз вынести на холст любой `ds-doc/*` из `Assets`, снять `instance.mainComponent.key` и идти от него.
 
 ### Имена — контракт
 
-Совпадение по имени **точное**, без нормализации: ни по префиксу, ни без учёта регистра, ни с игнорированием пробелов. Опечатки движка (`ds-doc/interation`, `ds-paragraph-ux-wtiting`) — часть контракта, писать дословно.
+Совпадение по имени **точное**, без нормализации: ни по префиксу, ни без учёта регистра, ни с игнорированием пробелов. Опечатка движка `ds-doc/interation` — часть контракта, писать дословно.
 
 Канонический список, по которому идёт поиск:
 
@@ -66,15 +78,14 @@ Node-id и keys в таблицах ниже — из файла-первоис�
 
 | Паттерн | node | key | `Title` шапки |
 |---|---|---|---|
-| `ds-doc/changelog` | `7:454` | `8287d42d2cf40627f7ffd2d7b9f45f63712dd5e9` | `Changelog` |
-| `ds-doc/specification` | `7:456` | `4ed401334b30f2a35f603e9ebb7bba5b81ecce56` | `Specification` |
-| `ds-doc/interation` ¹ | `905:3416` | `b77ddbb787b1a9e4918cac18634ba18315152e90` | `Animated` |
-| `ds-doc/tips-practices` | `7:466` | `a642034ac5b8c29d71560eb7132ff27aa029fa24` | `Tips and practices` |
-| `ds-doc/microcopy` | `7:467` | `a6b598198f6aa26fe6b709039eccc91dc893fbf8` | `Microcopy` |
-| `ds-doc/components` | `7:468` | `b61fec9e6abfe41c254f594ad59420f8152a858e` | `Components` |
-| `ds-doc` (мастер всех шести) | `7:494` | `7424114ace6c53a182202b5fbf40cd5364fa85d4` | — |
-| `ds-doc-header` | `814:2666` | `6e59fbed5de90fc29b5bdda352048f07f238b856` | шапка каждой страницы |
-| `ds-doc-header-cover` | `1026:2423` | `4ce883268ad325e1bf4e43029ea6a2e77a4f92ad` | декор, не трогать |
+| `ds-doc/changelog` | `7:454` | `8e1ca46510f8740291001b88c72178bf521b40ad` | `Changelog` |
+| `ds-doc/specification` | `7:456` | `5160fc2ef46a7483a054a5b52fc42977a9653e0d` | `Specification` |
+| `ds-doc/interation` ¹ | `905:3416` | `02a5afce1a1c9fc3cb6917f56739ac1738fcb2f2` | `Animated` |
+| `ds-doc/tips-practices` | `7:466` | `6688d10673b2f0679fb966d0e3eba80b12158019` | `Tips and practices` |
+| `ds-doc/microcopy` | `7:467` | `b3cfefd67fd64339295aff67f912da7e14befc82` | `Microcopy` |
+| `ds-doc/components` | `7:468` | `d7928d8e2aea2f725047487958f42e819269fb72` | `Components` |
+| `ds-doc-header` | `814:2666` | `b8bdac5b67d2df799fd2b2c1e2acf1126afabf19` | шапка каждой страницы |
+| `ds-doc-header-cover` | `1026:2423` | `3a434300661b9230d1addd25a23d9e9568c2861a` | декор, не трогать |
 
 ¹ опечатка в имени оригинала — при поиске узла писать дословно `ds-doc/interation`.
 
@@ -103,11 +114,7 @@ Node-id и keys в таблицах ниже — из файла-первоис�
 
 | Компонент | node | key | Property |
 |---|---|---|---|
-| `ds-paragraph` (set) | `3:1246` | `b696a7b05ff6b24318bb7f5841d38cd0561ec5f3` | `Type`: `H1\|H2\|H3\|H4`; `Title#25618:5`, `Description#25618:0`, `Show Title#25618:15`, `Show Description#25618:10` |
-| `ds-paragraph-dev-mode` | `812:2566` | `184de76f22f3167d8e7a85277f18c40cb13b3f60` | — |
-| `ds-paragraph-ux-wtiting` ¹ | `3:1467` | `db454721161fc923dc599d3f07918a466d743efc` | — |
-
-¹ опечатка в оригинале, писать дословно.
+| `ds-paragraph` (set) | `3:1246` | `79e003706a90e4138c5f524e66a8f109d414497b` | `Type`: `H1\|H2\|H3\|H4`; `Title#25618:5`, `Description#25618:0`, `Show Title#25618:15`, `Show Description#25618:10` |
 
 В паттернах `ds-paragraph` встречается под именем инстанса `ds-doc-paragraph` — это тот же компонент.
 
@@ -117,7 +124,7 @@ Node-id и keys в таблицах ниже — из файла-первоис�
 
 ## 3. `ds-doc-component` — контейнер-иллюстрация
 
-`3:1240`, key `d4f8dcfb1c31d7568fa1433fc8dac8549dd28fd6`.
+`3:1240`, key `68105279d106fe791d4dc3d46568980b628c7f49`.
 
 | Property | Тип | Default |
 |---|---|---|
@@ -140,7 +147,7 @@ Node-id и keys в таблицах ниже — из файла-первоис�
 
 ### `ds-doc-component-state`
 
-`3:1259`, key `2e4bb69970e835a5f870d85099897fc7a4c27270`.
+`3:1259`, key `c15f42829046ab814e93e806e67320a695fe9e24`.
 
 | Property | Тип | Default |
 |---|---|---|
@@ -178,8 +185,8 @@ Name Component                        ← frame
 
 | Компонент | node | key | Property |
 |---|---|---|---|
-| `Name` | `10010:10004` | `c2a2c8c150e8f3eb0cb293010ce7e4e2d72a7826` | `Name Component#10010:1` |
-| `ds-doc-component-label` (set) | `3:1318` | `b52e0b0d3a69e04713c70193b56ff4a34d07f723` | `Label#29891:0`; `Large`: `False\|True`; `Vertical`: `False\|True` |
+| `Name` | `10010:10004` | `c386cdaba450f37d5125b5c8fa99157a1f101e3e` | `Name Component#10010:1` |
+| `ds-doc-component-label` (set) | `3:1318` | `9382174b65c42d4812ca813248629a29ade63ed1` | `Label#29891:0`; `Large`: `False\|True`; `Vertical`: `False\|True` |
 
 Правила построения:
 
@@ -224,11 +231,11 @@ Name Component                        ← frame
 
 | Компонент | node | key | Property |
 |---|---|---|---|
-| `ds-log` | `3:1197` | `8120ce3a3685b3b434412d62d20da637ce22d108` | `Description#12479:2`, `Show Description#29:1` (true), `Designers#10010:0` (SLOT), `File#10010:7` (SLOT), `Show File#10010:8` (false) |
-| `ds-log-changelog-version` | `3:1222` | `16b08a3e65a98ef2a3c31e646fac79fcbcf5d37a` | `Major#30279:0`, `Minor#30279:1`, `Patch#30279:2` — дефолт `0.0.0` |
-| `ds-log-changelog-date` | `10010:9403` | `f78867e6f53bbf0158b13b7db89786b1976a9e50` | `Day#1521:0`, `Month#1521:1`, `Year#1521:2` — дефолт `15.08.26`, год двузначный |
-| `ds-log-label` (set) | `3:1189` | `e7b302d39762eca1a9932681906e4296405d53c8` | `Type`: `New` \| `Changed` \| `Fixed` |
-| `ds-log-designers` | `10010:9177` | `207d03c74d40cf95f58e2c0a22029905b26a0329` | `Designer#1823:10` — дефолт `Zhasur Eshmirzaev` |
+| `ds-log` | `3:1197` | `65f3f839c5cdf8b8daed1cc04bd33de7e4edda0c` | `Description#12479:2`, `Show Description#29:1` (true), `Designers#10010:0` (SLOT), `File#10010:7` (SLOT), `Show File#10010:8` (false) |
+| `ds-log-changelog-version` | `3:1222` | `e798cdef2dfda2967007f36c74f96b7a65723f4e` | `Major#30279:0`, `Minor#30279:1`, `Patch#30279:2` — дефолт `0.0.0` |
+| `ds-log-changelog-date` | `10010:9403` | `e629f33c644136be9e7defcbbe67d3835042620f` | `Day#1521:0`, `Month#1521:1`, `Year#1521:2` — дефолт `15.08.26`, год двузначный |
+| `ds-log-label` (set) | `3:1189` | `30806cc479bb6bf49590399fea3717be15d58aae` | `Type`: `New` \| `Changed` \| `Fixed` |
+| `ds-log-designers` | `10010:9177` | `8bc09f0b16c91483e6fb2b728fdcbafec8980933` | `Designer#1823:10` — дефолт `Zhasur Eshmirzaev` |
 
 ```
 ds-log
@@ -272,9 +279,9 @@ ds-log
 
 | Узел | node | key | Статус |
 |---|---|---|---|
-| `ds-row` | `756:986` | `8181fba83fe121ce4e57388057f39c1959b9ae65` | 16×16, хелпер сетки |
-| `ds-icon-components` (set) | `3:1470` | `4717d809058f12f0bcb8cab0c42c9787d30c725d` | `Type`: `Component` \| `Fix` — маркер |
-| `ds-doc-interaction` (set) | `10006:17399` | `f717332d97ba10052ac3f421f4ea56bb0768b452` | `Type`: `Device` \| `Container`, слоты `Slot Interaction#10006:25`, `Slot Device Interaction#10006:28`. **В `ds-doc` не используется** — страница `interation` собрана на `ds-doc-component Type=Device`. Не применять без решения владельца. |
+| `ds-row` | `756:986` | `0ae4951b5ecdfdec85cd21c15f49e19eabb5ae90` | 16×16, хелпер сетки |
+| `ds-icon-components` (set) | `3:1470` | `47948be66d44d8f9aa7eba23229e55558a60a8a8` | `Type`: `Component` \| `Fix` — маркер |
+| `ds-doc-interaction` (set) | `10006:17399` | `7587f680e04f7fc403452dd116b1278c73a1f2e8` | `Type`: `Device` \| `Container`, слоты `Slot Interaction#10006:25`, `Slot Device Interaction#10006:28`. **В `ds-doc` не используется** — страница `interation` собрана на `ds-doc-component Type=Device`. Не применять без решения владельца. |
 | `ds-format-component-head` / `-footer` | — | — | поколение 1.0, встречается только на `example`. Не использовать. |
 
 ---
@@ -296,5 +303,4 @@ ds-log
 | В Figma | Правильно |
 |---|---|
 | `ds-doc/interation` | interaction |
-| `ds-paragraph-ux-wtiting` | ux-writing |
 | `Show Desciption#757:0` | Description |
