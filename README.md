@@ -10,7 +10,7 @@
 
 - **Начать отсюда:** [OVERVIEW.md](OVERVIEW.md) — что с чем работает, какой файл брать к какому репозиторию
 - **Репозиторий:** [github.com/jsr993/ds-doc-build-skill](https://github.com/jsr993/ds-doc-build-skill)
-- **Figma-файл движка:** [Component Spec Kit](https://www.figma.com/design/KNEAKDWElVE0JkNi9j0x8S/Component-Spec-Kit)
+- **Figma-файл движка:** [Component Spec Kit в Figma Community](https://www.figma.com/community/file/1666170620013431022/component-spec-kit) — скопируйте его себе
 - **Готовый архив скилла:** [`dist/ds-doc-build.skill`](dist/ds-doc-build.skill)
 - **Как всё устроено внутри:** [ARCHITECTURE.md](ARCHITECTURE.md) — для тех, кто развивает движок и скилл
 

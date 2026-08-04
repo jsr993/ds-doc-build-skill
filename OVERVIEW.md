@@ -41,23 +41,25 @@ One repository serves every language. The language of the documentation follows 
 
 | Language | Figma file | Skill |
 |---|---|---|
-| English | *not published yet* | [github.com/jsr993/ds-doc-build-skill](https://github.com/jsr993/ds-doc-build-skill) |
+| English | [Component Spec Kit](https://www.figma.com/community/file/1666170620013431022/component-spec-kit) — duplicate it from Community | [github.com/jsr993/ds-doc-build-skill](https://github.com/jsr993/ds-doc-build-skill) |
 | Russian | *not published yet* | the same repository |
 
 There is no separate repository per language, and there should never be one. The pipeline, the engine map, the recipes and the traps are identical; only three lists of strings differ, and those live in `references/locales/`. Two repositories would mean fixing every discovered trap twice, and they would drift.
 
 ### Current status
 
-Nothing is published yet. Honest state as of 3 August 2026:
+Honest state as of 4 August 2026 — the two halves are not equally far along:
 
 | Piece | State |
 |---|---|
-| Russian Figma file | exists as `Component Spec Kit`, not yet in Community |
-| English Figma file | not created — it will be a duplicate of the Russian one with translated variable values |
-| Skill repository | created, empty, first push not made |
+| English Figma file | **published** in Figma Community |
+| Russian Figma file | not published yet |
+| Skill repository | created, first push not made yet |
 | Locale files | not extracted yet — user-facing strings still sit inside the pipeline |
 
-The English half ships first, then the Russian one.
+The English half shipped first, the Russian one follows.
+
+**What this means in practice right now:** the engine is English, the skill is not. Until the strings are moved out into `references/locales/`, the skill will interview you and write into the file in Russian, while the page headings come from the English file. Ask in English and you will get a mix rather than an English section. This is the next thing being fixed.
 
 ---
 
