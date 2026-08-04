@@ -131,7 +131,7 @@ for (const id of col.variableIds) {
   const v = await figma.variables.getVariableByIdAsync(id);
   if (v) vars[v.name] = v;
 }
-const need = ["radius/ds-radius-section", "color/section/ds-section-01",
+const need = ["space/global/radius/ds-radius-section", "color/section/ds-section-01",
               "color/section/ds-section-02", "color/ds-tertiary"];
 const missing = need.filter(n => !vars[n]);
 if (missing.length) return { stop: true, missing };   // не подставлять цвета руками
@@ -149,7 +149,7 @@ section.strokeWeight = 1;
 section.strokeAlign = "INSIDE";
 
 for (const corner of ["topLeftRadius", "topRightRadius", "bottomLeftRadius", "bottomRightRadius"])
-  section.setBoundVariable(corner, vars["radius/ds-radius-section"]);
+  section.setBoundVariable(corner, vars["space/global/radius/ds-radius-section"]);
 ```
 
 Если в файле уже есть готовая секция документации — снять настройки с неё (`fills`, `strokes`, `strokeWeight`, `strokeAlign`, `boundVariables`) и присвоить своей: правки владельца подхватятся сами.
