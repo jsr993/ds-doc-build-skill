@@ -1,6 +1,6 @@
 # Рецепты Plugin API
 
-Код ниже — чистый Figma Plugin API, выполняется через `use_figma`. Контракт вызова — в `SKILL.md`, раздел «Чем работать».
+Код ниже — чистый Plugin API, он одинаков для любой обвязки. Чем его выполнять и контракт вызова — в `execution.md`.
 
 ---
 
@@ -151,6 +151,8 @@ section.strokeAlign = "INSIDE";
 for (const corner of ["topLeftRadius", "topRightRadius", "bottomLeftRadius", "bottomRightRadius"])
   section.setBoundVariable(corner, vars["space/global/radius/ds-radius-section"]);
 ```
+
+Коллекция `decoration` многомодовая (`theme v1|v2|v3`) — имена переменных одни, значения разные. Скилл привязывает переменную, значение под режим Figma разрешает сама.
 
 Если в файле уже есть готовая секция документации — снять настройки с неё (`fills`, `strokes`, `strokeWeight`, `strokeAlign`, `boundVariables`) и присвоить своей: правки владельца подхватятся сами.
 

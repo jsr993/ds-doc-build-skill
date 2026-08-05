@@ -10,7 +10,9 @@ Everything here is duplicated in two other places — the `Information` page ins
 
 A way to document design-system components **inside Figma**, with an AI agent doing the heavy part.
 
-The result is a section of six pages next to your component: Changelog, Specification, Animated, Tips and practices, Microcopy, Components. Nothing is drawn from scratch — every page is assembled from prepared patterns, and all visual styling comes from a variable collection you control.
+The result is a section of three pages next to your component: Changelog, Specification, Components. Without those three there is no documentation, and those three are exactly what the skill builds. Nothing is drawn from scratch — every page is assembled from prepared patterns, and all visual styling comes from a variable collection you control.
+
+The engine holds three more patterns — Animated, Tips and practices, Microcopy. The skill does not build them: what goes there cannot be derived from the component. Assemble them by hand when you have something to say.
 
 ## What this is not
 
@@ -59,7 +61,7 @@ Honest state as of 4 August 2026 — the two halves are not equally far along:
 
 The English half shipped first, the Russian one follows.
 
-**What this means in practice right now:** the engine is English, the skill is not. Until the strings are moved out into `references/locales/`, the skill will interview you and write into the file in Russian, while the page headings come from the English file. Ask in English and you will get a mix rather than an English section. This is the next thing being fixed.
+**What this means in practice right now:** the engine is English, the skill is not. Until the strings are moved out into `references/locales/`, the skill writes into the file in Russian, while the page headings come from the English file. Ask in English and you will get a mix rather than an English section. This is the next thing being fixed.
 
 ---
 
@@ -68,12 +70,11 @@ The English half shipped first, the Russian one follows.
 1. **Prepare the file.** Copy the Figma file into your project, or attach it as a library. Change the variables in the `decoration` collection — colours, spacing, radii, typography — so the documentation looks like your design system. You are editing values only; never rename anything.
 2. **Pick a component** and send its link to the agent. It must be the component itself — a `COMPONENT` or `COMPONENT_SET`. A link to an instance, frame, section or group is refused, because that same node is later placed into the `Slot Component` field on the Components page, and you cannot place an instance there.
 3. **The skill reads the component** — variants, properties, layer tree, tokens — and never writes to it.
-4. **It asks for what the component cannot tell it:** what the component is for, what each anatomy layer does, what each property means, do-and-don't pairs, microcopy rules, and who to credit in the changelog.
-5. **It shows a plan** — which component, how many variants, which pages, which specification blocks, which changelog version. **Nothing is written to the file until you confirm.**
-6. **It assembles the section**, one page per call, checking a screenshot after each.
-7. **You take over.** The skill does the mechanical bulk; the meaning is yours to refine.
+4. **It reports the inventory** — how many variants, which axes, the order the specification blocks will follow — and keeps going. There is no plan to confirm and no interview: the skill is built for documenting dozens of components in one pass, where a question per component means the work stops.
+5. **It assembles the section**, one page per call, checking a screenshot after each.
+6. **You take over.** The skill does the mechanical bulk; the meaning is yours to refine.
 
-What it will never do: invent content. If something was not supplied, it stays empty and is listed as a gap in the final report.
+Facts — variants, states, anatomy, property order — come only from the component. Wording for headings and descriptions is generated from a closed set of templates and must be a checkable restatement of the inventory; everything generated is listed in the final report so you know what to reread. Meaning that cannot be derived — when to use which configuration, how styles differ in purpose, text rules, recommendations — is never invented: the block stays empty and is listed as a gap.
 
 ---
 
