@@ -56,7 +56,7 @@ Honest state as of 4 August 2026 — the two halves are not equally far along:
 |---|---|
 | English Figma file | **published** in Figma Community |
 | Russian Figma file | not published yet |
-| Skill repository | created, first push not made yet |
+| Skill repository | published, but two commits behind — it still serves the pre-3.0 skill |
 | Locale files | not extracted yet — user-facing strings still sit inside the pipeline |
 
 The English half shipped first, the Russian one follows.
