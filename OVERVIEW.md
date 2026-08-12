@@ -67,7 +67,7 @@ The English half shipped first, the Russian one follows.
 
 ## How it works
 
-1. **Prepare the file.** Copy the Figma file into your project, or attach it as a library. Change the variables in the `decoration` collection — colours, spacing, radii, typography — so the documentation looks like your design system. You are editing values only; never rename anything.
+1. **Prepare the file.** Copy the Figma file into your project, or attach it as a library. Change the variables in the `decoration` collection — colours, spacing, radii, typography — so the documentation looks like your design system. You are editing values only; never rename anything. If you publish your copy as a library, make sure the `decoration` variable collection is published along with the components — a library that ships components but hides its variables lets every page build fine and then stops the skill at section styling, with nothing to bind to.
 2. **Pick a component** and send its link to the agent. It must be the component itself — a `COMPONENT` or `COMPONENT_SET`. A link to an instance, frame, section or group is refused, because that same node is later placed into the `Slot Component` field on the Components page, and you cannot place an instance there.
 3. **The skill reads the component** — variants, properties, layer tree, tokens — and never writes to it.
 4. **It reports the inventory** — how many variants, which axes, the order the specification blocks will follow — and keeps going. There is no plan to confirm and no interview: the skill is built for documenting dozens of components in one pass, where a question per component means the work stops.
