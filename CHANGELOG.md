@@ -14,6 +14,26 @@
 
 ## Скилл
 
+### 3.1.0 — 12.08.2026
+
+The skill now speaks English; generated documentation follows the language of the request. Entries from here on are written in English — the repository's public language.
+
+#### Added
+
+- **`references/locales/`**: `en.md` and `ru.md` — formats, the heading glossary, the write templates and the report labels. The skill reads exactly one locale per build. Adding a language = one new file in `locales/` plus a `description` line; not a line in the pipeline.
+- **The language rule**: documentation language = the language of the user's request. Safeguard: after the engine resolves, the skill compares the header-variable language with the chosen one; a mismatch is named in the report, never a stop — a file may be intentionally mixed.
+- The `en` date-format question is closed: numeric `dd.mm.yy` in every locale, because the format is dictated by the `ds-log-changelog-date` component (three text slots joined with dots), not by the locale.
+
+#### Changed
+
+- `SKILL.md` and every reference translated into English — the model reads them, and the repository is public in English. The pipeline itself is unchanged.
+- README split: `README.md` (English) + `README.ru.md` (Russian).
+- The detach-rule step «rename to the Russian page name» in the engine map corrected to the actual rule: the frame takes the header `Title` value.
+
+#### Fixed
+
+- Slot traps from the first full run on Chips Item recorded in `build-recipes.md`: phantom demo children after the first `remove()` in a live-instance slot (cured by the marker recipe), subtree re-keying from any `setProperties` and from appending same-component instances, annotation `properties` validity, non-permanent imported-component ids, per-call font loading.
+
 ### 3.0.0 — 05.08.2026
 
 Major: сменился контракт со сборкой. Скилл 2.x собирал шесть страниц по ответам пользователя, 3.0 собирает три и почти ничего не спрашивает. Результат прежнего запуска не воспроизводится.

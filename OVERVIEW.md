@@ -50,18 +50,16 @@ There is no separate repository per language, and there should never be one. The
 
 ### Current status
 
-Honest state as of 4 August 2026 — the two halves are not equally far along:
+Honest state as of 12 August 2026:
 
 | Piece | State |
 |---|---|
 | English Figma file | **published** in Figma Community |
 | Russian Figma file | not published yet |
-| Skill repository | published, but two commits behind — it still serves the pre-3.0 skill |
-| Locale files | not extracted yet — user-facing strings still sit inside the pipeline |
+| Skill repository | **published**, in English, one skill serving both languages |
+| Locale files | `references/locales/en.md` + `ru.md` — generated texts follow the request language |
 
-The English half shipped first, the Russian one follows.
-
-**What this means in practice right now:** the engine is English, the skill is not. Until the strings are moved out into `references/locales/`, the skill writes into the file in Russian, while the page headings come from the English file. Ask in English and you will get a mix rather than an English section. This is the next thing being fixed.
+**How the languages combine:** the documentation language follows the language you write your request in; the section headings come from the Figma file's variables and follow its language. Mixing them — an English file with a Russian request — is legal: the skill names the mix in its report and continues.
 
 ---
 

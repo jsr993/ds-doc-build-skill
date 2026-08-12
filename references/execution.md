@@ -1,56 +1,56 @@
-# Исполнение и гейты
+# Execution and gates
 
-Скилл не привязан к модели и к обвязке. Правила, карта движка и спеки страниц — чистый Figma Plugin API. Отличается только то, **чем** агент выполняет код и делает снимок.
+The skill is not tied to a model or a harness. The rules, the engine map and the page specs are pure Figma Plugin API. The only thing that differs is **what** the agent executes code with and takes snapshots with.
 
-## Что должно быть у агента
+## What the agent must have
 
-| Возможность | Зачем |
+| Capability | Why |
 |---|---|
-| выполнить JS в контексте файла Figma | всё чтение и вся запись |
-| получить изображение узла | сверка раскладки после каждой страницы |
-| право записи в файл | иначе сборка невозможна |
+| execute JS in the Figma file context | all reading and all writing |
+| capture an image of a node | layout check after every page |
+| write access to the file | no build without it |
 
-Нет хотя бы одного — остановиться и сказать, чего не хватает. Обходных путей не искать.
+Any one missing — stop and say what is lacking. Do not look for workarounds.
 
-## Контракт вызова
+## Call contract
 
-Одинаков для любой обвязки:
+Identical for any harness:
 
-- один вызов — один логический шаг; страница целиком за раз не собирается;
-- `return` вместо `console.log`: агент видит только возвращённое значение;
-- `setCurrentPageAsync` — ровно один раз за вызов;
-- возвращать ID всех созданных и изменённых узлов;
-- вызов упал — не повторять вслепую: прочитать ошибку, исправить, потом повторить. Упавший скрипт не выполняется частично.
+- one call — one logical step; a page is never built whole in one call;
+- `return` instead of `console.log`: the agent sees only the returned value;
+- `setCurrentPageAsync` — exactly once per call;
+- return the IDs of every node created or mutated;
+- a failed call is never blindly retried: read the error, fix, then retry. A failed script does not execute partially.
 
-## Адаптеры
+## Adapters
 
-| Обвязка | Выполнение кода | Снимок |
+| Harness | Code execution | Snapshot |
 |---|---|---|
-| Любая модель с Figma MCP | инструмент MCP, выполняющий JS в файле | инструмент MCP, отдающий изображение узла |
-| Claude Code + Figma MCP | `use_figma`, в `skillNames` добавить `figma-use` — он обязателен перед **каждым** вызовом | `get_screenshot` |
-| Агент внутри Figma | Plugin API напрямую | средствами агента |
+| Any model with Figma MCP | the MCP tool that runs JS in the file | the MCP tool that returns a node image |
+| Claude Code + Figma MCP | `use_figma`, with `figma-use` in `skillNames` — mandatory before **every** call | `get_screenshot` |
+| An agent inside Figma | Plugin API directly | by the agent's own means |
 
-Имена инструментов в правилах не упоминаются: в тексте пишется «выполнить», «снять изображение». Конкретный инструмент подставляет адаптер.
+Tool names never appear in the rules: the text says «execute», «capture an image». The adapter supplies the concrete tool.
 
-## Гейты
+## Gates
 
-Пять точек, где агент **обязан отчитаться до того, как что-то сделает**. Гейт закрывается перечислением фактов, а не словами «проверено» или «всё готово».
+Five points where the agent **must state facts before acting**. A gate closes with a list of facts, never with «checked» or «all good».
 
-Гейт — не вопрос пользователю. Отчитался фактами и пошёл дальше. Остановка только там, где прямо написано «стоп»: не читаются референсы, нет библиотеки, на входе не компонент, не найден `ds-*` или переменная, перенос исходного set в `Slot Component` (единственный вопрос сборки).
+A gate is not a question to the user. State the facts and move on. Stops happen only where «stop» is written: references unreadable, no library, input is not a component, a `ds-*` or a variable not found, moving the source set into `Slot Component` (the single question of the build).
 
-| Гейт | Отчитаться перед тем, как идти дальше |
+| Gate | Report before moving on |
 |---|---|
-| **G0 Готовность** | перечислить прочитанные файлы поимённо; назвать, как найдена библиотека и каким способом будет резолвиться движок |
-| **G1 Вход и инвентарь** | тип и имя присланного узла; число вариантов, оси со значениями, порядок свойств дословно; откуда возьмётся лид (`description` или генерация) |
-| **G2 Площадка** | id секции, список разрешённых `ds-*`, загруженные шрифты |
-| **G3 Страница** | перед: какая страница и из какого паттерна. После: что видно на снимке, есть ли переполнения. Три раза — changelog, specification, components |
-| **G4 Сдача** | пройти чек-лист по пунктам, каждый с фактом; перечислить сгенерированные тексты, опечатки исходника и пробелы |
+| **G0 Readiness** | list the files read by name; say how the library was found and how the engine will be resolved |
+| **G1 Input and inventory** | type and name of the node received; variant count, axes with values, property order verbatim; where the lead comes from (`description` or generation) |
+| **G2 Staging** | section id, list of resolved `ds-*`, fonts loaded |
+| **G3 Page** | before: which page, from which pattern. After: what the snapshot shows, any overflows. Three times — changelog, specification, components |
+| **G4 Handover** | walk the checklist item by item, each with a fact; list generated texts, source typos and gaps |
 
-Правила гейтов:
+Gate rules:
 
-1. **Не пройден — не писать.** Любая запись в файл до закрытия G2 — ошибка.
-2. **Нельзя закрыть гейт, не назвав факты.** «Инвентарь снят» — не отчёт. «112 вариантов, пять осей: Configuration=Only Label|…» — отчёт.
-3. **Сомнение — стоп.** Правило скилла противоречит увиденному в файле → остановиться и спросить, а не выбирать самому.
-4. **Сгенерированное помечать.** Любой текст, написанный скиллом, а не взятый из компонента, идёт в отчёт G4 списком.
+1. **Not passed — no writing.** Any write to the file before G2 closes is an error.
+2. **A gate cannot close without named facts.** «Inventory taken» is not a report. «112 variants, five axes: Configuration=Only Label|…» is a report.
+3. **Doubt — stop.** A skill rule contradicts what the file shows → stop and ask, never pick for yourself.
+4. **Mark the generated.** Any text written by the skill rather than taken from the component goes into the G4 report as a list.
 
-Гейты нужны не для отчётности. Они закрывают три места, где агенты чаще всего ломают сборку: пишут в файл, не сняв инвентарь; объявляют проверку пройденной, не сделав её; импровизируют на ловушках Plugin API вместо того, чтобы остановиться.
+Gates are not for ceremony. They close the three places where agents most often break a build: writing to the file before taking the inventory; declaring a check passed without doing it; improvising on Plugin API traps instead of stopping.

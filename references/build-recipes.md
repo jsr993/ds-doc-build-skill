@@ -1,12 +1,12 @@
-# Рецепты Plugin API
+# Plugin API recipes
 
-Код ниже — чистый Plugin API, он одинаков для любой обвязки. Чем его выполнять и контракт вызова — в `execution.md`.
+The code below is pure Plugin API, identical for any harness. What executes it and the call contract — in `execution.md`.
 
 ---
 
-## 0. Разрешение ключей property
+## 0. Resolving property keys
 
-Суффикс (`#814:6`) стабилен внутри файла, но меняется при переиздании библиотеки. Хардкодить нельзя — резолвить по префиксу.
+The suffix (`#814:6`) is stable within a file but changes when the library is republished. Never hardcode — resolve by prefix.
 
 ```js
 function propKey(node, name) {
@@ -27,22 +27,22 @@ function setProps(instance, map) {
 }
 ```
 
-VARIANT-property (`Type`, `Large`, `Vertical`, `Position`) идут без суффикса — тот же резолвер их поймает.
+VARIANT properties (`Type`, `Large`, `Vertical`, `Position`) carry no suffix — the same resolver catches them.
 
 ---
 
-## 1. Инвентарь исходного компонента (read-only)
+## 1. Source component inventory (read-only)
 
-Проверка входа — здесь, до любой записи.
+Input validation lives here, before any write.
 
 ```js
 const node = await figma.getNodeByIdAsync("SRC_ID");
 
 if (node.type !== "COMPONENT_SET" && node.type !== "COMPONENT") {
   return { stop: true, got: { type: node.type, name: node.name },
-           reason: "нужна ссылка на сам компонент — COMPONENT_SET или COMPONENT" };
+           reason: "a link to the component itself is required — COMPONENT_SET or COMPONENT" };
 }
-// вариант внутри набора — поднимаемся к набору, это тот же компонент
+// a variant inside a set — climb to the set, it is the same component
 const set = node.type === "COMPONENT" && node.parent?.type === "COMPONENT_SET" ? node.parent : node;
 
 const defs = set.componentPropertyDefinitions;
@@ -73,16 +73,16 @@ return {
 };
 ```
 
-Токены — отдельным вызовом `get_variable_defs` на `defaultVariant`.
+Tokens — a separate `get_variable_defs` call on `defaultVariant`.
 
 ---
 
-## 2. Разрешение движка
+## 2. Resolving the engine
 
-Скилл переносимый: движок ищется по имени, а не по id. Node-id и keys из `ds-engine-map.md` — только быстрый путь в файле-первоисточнике.
+The skill is portable: the engine is found by name, not by id. Node-ids and keys from `ds-engine-map.md` are only a fast path in the source file.
 
 ```js
-// один read-only вызов: собрать ds-* по всем страницам файла
+// one read-only call: collect ds-* across every page of the file
 const wanted = ["ds-doc/changelog", "ds-doc/specification", "ds-doc/interation",
                 "ds-doc/tips-practices", "ds-doc/microcopy", "ds-doc/components",
                 "ds-doc-header", "ds-paragraph", "ds-doc-component", "ds-doc-component-state",
@@ -101,13 +101,13 @@ const missing = wanted.filter(w => !found[w]);
 return { found, missing };
 ```
 
-Совпадение по имени точное: `wanted.includes(n.name)`, без `startsWith`, `toLowerCase` и `trim`. Поиск по префиксу `ds-` зацепил бы компоненты пользователя.
+Name matching is exact: `wanted.includes(n.name)` — no `startsWith`, `toLowerCase` or `trim`. A `ds-` prefix match would catch the user's own components.
 
-Пусто → пробовать `importComponentByKeyAsync` по ключам из карты (движок подключён библиотекой). Всё ещё пусто → вернуть `{ stop: true, expected, found, missing }` и остановиться. Похожие имена не подбирать, самодельными фреймами не подменять: почти всегда причина в том, что компоненты движка переименовали.
+Empty → try `importComponentByKeyAsync` with the map's keys (the engine is attached as a library; sets go through `importComponentSetByKeyAsync`). Still empty → return `{ stop: true, expected, found, missing }` and stop. Never pick similar names, never substitute home-made frames: the cause is almost always renamed engine components.
 
-Собранную карту `имя → id` держать в памяти сборки и передавать в следующие вызовы строками.
+Keep the collected `name → id` map in build memory and pass it into subsequent calls as string literals.
 
-Шрифты — снимать с узлов движка, а не хардкодить:
+Fonts — harvest from engine nodes, never hardcode:
 
 ```js
 const fonts = new Map();
@@ -119,9 +119,9 @@ await Promise.all([...fonts.values()].map(f => figma.loadFontAsync(f)));
 
 ---
 
-## 2а. Площадка: секция и её оформление
+## 2a. Staging: the section and its styling
 
-Визуал секции — на переменных `decoration`. Цвета и радиус ставить **только привязкой**, не значениями. `setBoundVariableForPaint` возвращает **новый** paint — результат обязательно перехватывать.
+Section visuals ride on `decoration` variables. Set colours and radius **by binding only**, never by value. `setBoundVariableForPaint` returns a **new** paint — always capture the result.
 
 ```js
 const col = (await figma.variables.getLocalVariableCollectionsAsync())
@@ -134,11 +134,11 @@ for (const id of col.variableIds) {
 const need = ["space/global/radius/ds-radius-section", "color/section/ds-section-01",
               "color/section/ds-section-02", "color/ds-tertiary"];
 const missing = need.filter(n => !vars[n]);
-if (missing.length) return { stop: true, missing };   // не подставлять цвета руками
+if (missing.length) return { stop: true, missing };   // never substitute hand-picked colours
 
 const solid = (opacity) => ({ type: "SOLID", color: { r: 0, g: 0, b: 0 }, opacity });
 
-// две заливки: базовая и почти прозрачная поверх
+// two fills: a base and a near-transparent one on top
 const f2 = figma.variables.setBoundVariableForPaint(solid(1),    "color", vars["color/section/ds-section-02"]);
 const f1 = figma.variables.setBoundVariableForPaint(solid(0.01), "color", vars["color/section/ds-section-01"]);
 section.fills = [f2, f1];
@@ -152,20 +152,22 @@ for (const corner of ["topLeftRadius", "topRightRadius", "bottomLeftRadius", "bo
   section.setBoundVariable(corner, vars["space/global/radius/ds-radius-section"]);
 ```
 
-Коллекция `decoration` многомодовая (`theme v1|v2|v3`) — имена переменных одни, значения разные. Скилл привязывает переменную, значение под режим Figma разрешает сама.
+With the engine attached as a library, local collections are empty — import the variables by key instead: `figma.variables.importVariableByKeyAsync(key)`. Keys come from `teamLibrary.getVariablesInLibraryCollectionAsync(collection.key)`, or from the engine file's variables directly.
 
-Если в файле уже есть готовая секция документации — снять настройки с неё (`fills`, `strokes`, `strokeWeight`, `strokeAlign`, `boundVariables`) и присвоить своей: правки владельца подхватятся сами.
+The `decoration` collection is multi-mode (`theme v1|v2|v3`) — same names, different values. The skill binds the variable; Figma resolves the value for the active mode.
 
-Раскладка страниц: отступ от края секции `PAD = 100`, шаг между страницами `GAP = 200`, порядок — слева направо по мере сборки.
+If the file already has a finished documentation section — copy its settings (`fills`, `strokes`, `strokeWeight`, `strokeAlign`, `boundVariables`) onto yours: the owner's edits carry over by themselves.
+
+Page layout: `PAD = 100` from the section edge, `GAP = 200` between pages, left to right in build order.
 
 ```js
 const PAD = 100, GAP = 200;
 const right = section.children.reduce((m, c) => Math.max(m, c.x + c.width), PAD - GAP);
-frame.x = right + GAP;      // первая страница встанет в PAD
+frame.x = right + GAP;      // the first page lands at PAD
 frame.y = PAD;
 ```
 
-Обтяжка — **последним шагом**, когда все страницы собраны и высоты окончательные:
+Fitting — **the last step**, once every page is built and heights are final:
 
 ```js
 let maxR = 0, maxB = 0;
@@ -173,17 +175,17 @@ for (const c of section.children) { maxR = Math.max(maxR, c.x + c.width); maxB =
 section.resizeWithoutConstraints(Math.ceil(maxR + PAD), Math.ceil(maxB + PAD));
 ```
 
-`SECTION` не умеет auto-layout и сам не хугает — только явный `resizeWithoutConstraints`.
+`SECTION` has no auto-layout and never hugs — only an explicit `resizeWithoutConstraints`.
 
 ---
 
-## 2б. Создание секции
+## 2b. Creating the section
 
 ```js
 const page = await figma.getNodeByIdAsync("TARGET_PAGE_ID");
-await figma.setCurrentPageAsync(page);           // ровно один раз за вызов
+await figma.setCurrentPageAsync(page);           // exactly once per call
 
-// шрифты уже загружены на шаге разрешения движка
+// fonts are already loaded at the engine-resolution step
 
 const right = page.children.reduce((m, n) => Math.max(m, n.x + n.width), 0);
 
@@ -191,16 +193,16 @@ const section = figma.createSection();
 section.name = "COMPONENT_NAME";
 section.x = right + 400;
 section.y = 0;
-section.resizeWithoutConstraints(8000, 8000);   // временный размер, обтянем в конце
+section.resizeWithoutConstraints(8000, 8000);   // temporary size, fitted at the end
 
 return { sectionId: section.id };
 ```
 
-Узлы движка брать из карты, собранной в рецепте 2: `await figma.getNodeByIdAsync(found["ds-doc/changelog"])`.
+Take engine nodes from the map collected in recipe 2: `await figma.getNodeByIdAsync(found["ds-doc/changelog"])`.
 
 ---
 
-## 3. Страница: инстанс → детач → наполнение
+## 3. A page: instance → detach → fill
 
 ```js
 const pattern = await figma.getNodeByIdAsync(found["ds-doc/specification"]);
@@ -211,30 +213,28 @@ const section = await figma.getNodeByIdAsync("SECTION_ID");
 section.appendChild(frame);
 frame.x = 0; frame.y = 0;
 
-// шапка осталась инстансом ds-doc-header — значения НЕ ТРОГАТЬ.
-// Title/Description приходят из паттерна и привязаны к переменным decoration.
-// Любой setProps по ним рвёт связь с переменной и подменяет название раздела.
+// the header stays a ds-doc-header instance — DO NOT touch its values.
+// Title/Description come from the pattern and are bound to decoration variables.
+// Any setProps on them severs the binding and replaces the section name.
 const header = frame.findAllWithCriteria({ types: ["INSTANCE"] })
   .find(n => n.mainComponent?.name === "ds-doc-header");
 
-// имя frame = Title шапки, а не свой список названий
+// frame name = the header Title, never a list of your own
 const title = Object.entries(header.componentProperties)
   .find(([k]) => k.split("#")[0] === "Title")?.[1].value;
 frame.name = (title && String(title).trim())
-  || pattern.name.replace(/^ds-doc\//, "");                    // фолбэк: имя паттерна
+  || pattern.name.replace(/^ds-doc\//, "");                    // fallback: the pattern name
 
-// Content очищаем от демо-блоков
+// clear Content of demo blocks
 const content = frame.children.find(c => c.name === "Content");
 for (const c of [...content.children]) c.remove();
-
-return { frameId: frame.id, contentId: content.id };
 ```
 
-`detachInstance()` сохраняет привязки к переменным и отступы. Детачится только страничная обёртка; атомы остаются инстансами.
+`detachInstance()` preserves variable bindings and spacing. Only the page wrapper detaches; atoms stay instances.
 
 ---
 
-## 4. Блок «заголовок + контент» для Спецификации
+## 4. A «heading + content» block for Specification
 
 ```js
 const pSet = await figma.getNodeByIdAsync("3:1246");           // ds-paragraph
@@ -245,35 +245,37 @@ function variantOf(set, props) {
     Object.entries(props).every(([k, v]) => c.variantProperties[k] === v));
 }
 
-// лид страницы: только описание
+// the page lead: description only
 const lead = variantOf(pSet, { Type: "H1" }).createInstance();
 content.appendChild(lead);
-setProps(lead, { "Show Title": false, "Description": "<лид: имя компонента жирным, что это и когда брать>" });
+setProps(lead, { "Show Title": false, "Description": "<lead: from the component description or the locale template>" });
 
-// блок
+// a block
 const group = figma.createFrame();
 group.layoutMode = "VERTICAL";
-group.itemSpacing = refGroup.itemSpacing;      // шаг копируем с группы паттерна, не числом
+group.itemSpacing = refGroup.itemSpacing;      // copy spacing from a pattern group, never a number
 group.fills = [];
-content.appendChild(group);                                    // сначала в auto-layout…
-group.layoutSizingHorizontal = "FILL";                         // …только потом FILL
+content.appendChild(group);                                    // into the auto-layout first…
+group.layoutSizingHorizontal = "FILL";                         // …FILL only after
 group.layoutSizingVertical = "HUG";
 group.name = "Group";
 
 const h = variantOf(pSet, { Type: "H1" }).createInstance();
 group.appendChild(h);
-setProps(h, { "Title": "Анатомия", "Description": "У компонента следующая структура…" });
+setProps(h, { "Title": "<glossary heading>", "Description": "<locale template>" });
 
 const illo = variantOf(dcSet, { Type: "Structure" }).createInstance();
 group.appendChild(illo);
-setProps(illo, { "Title": "Состав", "Description": "Контейнер, текст, иконка" });
+setProps(illo, { "Title": "<configuration name>", "Show Desciption": false });
 ```
+
+`variantOf(...).createInstance()` — instancing the needed variant directly matters: `setProperties` with a variant swap recreates the instance subtree and turns slot children into phantoms (see Traps).
 
 ---
 
-## 5. Слоты — только через `appendChild`
+## 5. Slots — `appendChild` only
 
-`instance.setProperties({ [slotKey]: … })` **бросает исключение**. Содержимое слота задаётся детьми.
+`instance.setProperties({ [slotKey]: … })` **throws**. Slot content is set through children.
 
 ```js
 const slot = illo.findAllWithCriteria({ types: ["SLOT"] })
@@ -282,64 +284,78 @@ const slot = illo.findAllWithCriteria({ types: ["SLOT"] })
 const example = srcSet.defaultVariant.createInstance();
 slot.appendChild(example);
 
-// Если правка ПОСЛЕ append бросает "Internal Figma Error: Parent not found" —
-// перечитать узел через slot.children и работать со свежей ссылкой:
+// If an edit AFTER append throws "Internal Figma Error: Parent not found" —
+// re-read the node via slot.children and work with the fresh reference:
 // const fresh = slot.children[slot.children.length - 1];
 ```
 
-Ограничения слотов: `layoutMode = "GRID"` запрещён; `ComponentNode` напрямую класть нельзя (только инстанс); вложенный в слот фрейм нельзя привязать к другому слоту.
+Slot limits: `layoutMode = "GRID"` is forbidden; a `ComponentNode` cannot go in directly (instances only); a frame nested in a slot cannot be bound to another slot.
 
-**`slot.resetSlot()` не очищает слот, а возвращает демо-содержимое движка.** Чтобы слот стал пустым:
+**`slot.resetSlot()` does not empty a slot — it restores the engine demo content.** Emptying a slot inside a **live instance** requires the marker recipe:
 
 ```js
-while (slot.children.length > 0) slot.children[0].remove();
+// 1. append a plain marker frame — demo children become mortal
+const marker = figma.createFrame(); marker.name = "__MARKER__"; marker.resize(1, 1);
+slot.appendChild(marker);
+// 2. remove the demo children with a fresh lookup each iteration
+while (true) {
+  const demo = slot.children.find(c => c.name !== "__MARKER__");
+  if (!demo) break;
+  demo.remove();
+}
+// 3. remove the marker — an empty slot does not resurrect the demo
+slot.children.find(c => c.name === "__MARKER__").remove();
+// 4. only now append your own instances
 ```
 
-Снимок `[...slot.children]` использовать нельзя — id детей смещаются после первого `remove()`, и второй бросит «Node with id … not found».
+Why not simpler: after the first `remove()` the remaining demo children turn into phantoms — their ids read but the nodes reject mutation, and a fresh `findOne` does not help. Appending an instance of the **same component as the demo children** re-keys them the same way; a plain frame does not. In a subtree **detached** from a pattern none of this applies — everything is real nodes, clear them with a plain loop.
 
-Инстанс, положенный в слот, получает `layoutSizingHorizontal = "FIXED"` со своей натуральной шириной и вылезает за контейнер. После `appendChild` ставить `FILL` явно.
+An instance dropped into a slot gets `layoutSizingHorizontal = "FIXED"` at its natural width and overflows the container. Set `FILL` explicitly after `appendChild`.
 
 ---
 
-## 6. Состояния
+## 6. States
 
 ```js
 const stateHost = variantOf(dcSet, { Type: "State" }).createInstance();
 group.appendChild(stateHost);
-setProps(stateHost, { "Show Title": false, "Show Desciption": false });
 
+// slot surgery FIRST, properties AFTER — leaf to root (see Traps)
 const stateSlot = stateHost.findAllWithCriteria({ types: ["SLOT"] })
   .find(s => s.name === "Slot State");
 const stSet = await figma.getNodeByIdAsync("3:1259");          // ds-doc-component-state
 
-for (const st of [{ name: "Default", desc: "" }, { name: "Disabled", desc: "Недоступно для нажатия" }]) {
+for (const st of [{ name: "Default", desc: "" }, { name: "Disabled", desc: "Not pressable" }]) {
   const row = variantOf(stSet, { Position: "Horizontal" }).createInstance();
   stateSlot.appendChild(row);
-  setProps(row, { "Type": st.name, "Show Description": Boolean(st.desc), ...(st.desc ? { "Description": st.desc } : {}) });
 
   const preview = row.findAllWithCriteria({ types: ["SLOT"] }).find(s => s.name === "Slot");
   const inst = srcSet.children.find(c => c.variantProperties.State === st.name)?.createInstance();
   if (inst) preview.appendChild(inst);
+
+  setProps(row, { "Type": st.name, "Show Description": Boolean(st.desc), ...(st.desc ? { "Description": st.desc } : {}) });
 }
+
+setProps(stateHost, { "Show Title": false, "Show Desciption": false });   // host props last
 ```
 
-`Show Desciption` у `ds-doc-component` — с опечаткой. У `ds-doc-component-state` — правильное `Show Description`. Резолвер по префиксу это учитывает, но имена надо передавать дословно.
+`Show Desciption` on `ds-doc-component` carries the typo. `ds-doc-component-state` has the correct `Show Description`. The prefix resolver handles both, but pass the names verbatim.
 
 ---
 
-## 6а. Запись changelog целиком
+## 6a. A complete changelog entry
 
-Версия не спрашивается — считается из типа изменения.
+The version is never asked — it is computed from the change type.
 
 ```js
 function bumpVersion(prev, type) {
-  if (!prev) return { major: 1, minor: 0, patch: 0 };            // первая запись компонента
+  if (!prev) return { major: 1, minor: 0, patch: 0 };            // the component's first entry
   if (type === "New")     return { major: prev.major + 1, minor: 0, patch: 0 };
   if (type === "Changed") return { major: prev.major, minor: prev.minor + 1, patch: 0 };
   return { major: prev.major, minor: prev.minor, patch: prev.patch + 1 };   // Fixed
 }
 
-// база — версия верхней (самой свежей) записи страницы
+// the base is the version of the page's top (newest) entry
 function readTopVersion(content) {
   const top = content.children[0];
   if (!top) return null;
@@ -352,10 +368,10 @@ function readTopVersion(content) {
 }
 ```
 
-Сборка одной записи. Свежая версия кладётся **первой** — `insertChild(0, …)`, не `appendChild`.
+Assembling one entry. The newest version goes **first** — `insertChild(0, …)`, not `appendChild`.
 
 ```js
-const entry = { type: "Changed", desc: "<что изменилось>", designers: ["<Имя>", "<Имя>"], date: new Date() };
+const entry = { type: "Changed", desc: "<what changed>", date: new Date() };
 
 const version = bumpVersion(readTopVersion(content), entry.type);
 
@@ -369,7 +385,7 @@ const v = fresh.findAllWithCriteria({ types: ["INSTANCE"] })
   .find(n => n.mainComponent?.name === "ds-log-changelog-version");
 setProps(v, { "Major": String(version.major), "Minor": String(version.minor), "Patch": String(version.patch) });
 
-const pad = n => String(n).padStart(2, "0");                     // ведущие нули обязательны
+const pad = n => String(n).padStart(2, "0");                     // leading zeros are mandatory
 const d = fresh.findAllWithCriteria({ types: ["INSTANCE"] })
   .find(n => n.mainComponent?.name === "ds-log-changelog-date");
 setProps(d, { "Day": pad(entry.date.getDate()), "Month": pad(entry.date.getMonth() + 1),
@@ -380,43 +396,31 @@ const label = fresh.findAllWithCriteria({ types: ["INSTANCE"] })
 setProps(label, { "Type": entry.type });
 ```
 
-Участники — по инстансу на человека:
-
-```js
-const desSlot = fresh.findAllWithCriteria({ types: ["SLOT"] }).find(s => s.name === "Designers");
-while (desSlot.children.length > 0) desSlot.children[0].remove();   // resetSlot() вернёт демо-инстанс, а не очистит
-for (const name of entry.designers) {
-  const inst = (await figma.getNodeByIdAsync("10010:9177")).createInstance();
-  desSlot.appendChild(inst);
-  setProps(desSlot.children[desSlot.children.length - 1], { "Designer": name });
-}
-```
-
-Слот `File` и слой `✱ Image` внутри `ds-log-designers` не трогать — `Show File` остаётся `false`.
+The `Designers` slot in autonomous mode is **not touched** — the component default stays. The `File` slot and the `✱ Image` layer inside `ds-log-designers` are never touched — `Show File` stays `false`.
 
 ---
 
-## 6б. Аннотации и линейки
+## 6b. Annotations and measurements
 
-Категории и таблица «слой → properties» — в `annotations.md`.
+Categories and the «layer → properties» table — in `annotations.md`.
 
 ```js
 const cats = await figma.annotations.getAnnotationCategoriesAsync();
 const dev = cats.find(c => c.label === "Development").id;
 
-// слой внутри инстанса, лежащего в Slot Structure
-const layer = instanceInSlot.findOne(n => n.name === "<имя слоя из инвентаря>");
+// a layer inside the instance sitting in Slot Structure
+const layer = instanceInSlot.findOne(n => n.name === "<layer name from the inventory>");
 
 layer.annotations = [{
-  labelMarkdown: "**<Имя слоя>** — что этот слой делает в компоненте.",
+  labelMarkdown: "**<Layer name>** — what this layer does in the component.",
   categoryId: dev,
   properties: [{ type: "minWidth" }, { type: "itemSpacing" }, { type: "padding" }]
 }];
 ```
 
-`annotations` — read-only массив: присваивать целиком. Числа в `labelMarkdown` не дублировать.
+`annotations` is a read-only array: assign it whole. Never duplicate numbers in `labelMarkdown`. `properties` accept only what is actually set on the node — `width`/`height` are the safe fallback; `BOOLEAN_OPERATION` nodes take no annotations.
 
-Линейка вместо текста о размере:
+A measurement instead of size text:
 
 ```js
 if (figma.editorType === "dev") {
@@ -427,29 +431,29 @@ if (figma.editorType === "dev") {
 }
 ```
 
-Оси не смешивать. Вне Dev Mode вызов недоступен — линейку вынести в отчёт как ручной шаг.
+Never mix axes. Outside Dev Mode the call is unavailable — put the measurement in the report as a manual step.
 
 ---
 
-## 6в. Блоки спецификации по свойствам компонента
+## 6c. Specification blocks from component properties
 
-Порядок блоков = порядок ключей `componentPropertyDefinitions`, без сортировки.
+Block order = the order of `componentPropertyDefinitions` keys, unsorted.
 
 ```js
 const defs = srcSet.componentPropertyDefinitions;
 const blocks = Object.entries(defs)
-  .filter(([, d]) => d.type === "VARIANT" || d.type === "BOOLEAN")
-  .map(([k, d]) => ({ prop: k.split("#")[0], values: d.variantOptions || [String(d.defaultValue)] }));
-// → Configuration, Style, Size, State, Selected, Show Indicator
+  .filter(([, d]) => d.type === "VARIANT")
+  .map(([k, d]) => ({ prop: k.split("#")[0], values: d.variantOptions }));
+// → Configuration, Style, Size, State, Selected
 ```
 
-`Selected` показывается строкой внутри блока «Состояния», отдельным блоком не выносится. Булево свойство становится блоком, только если у него своя логика показа; в описании тогда указывается, при каких значениях других осей оно доступно.
+Only VARIANT axes become blocks. TEXT and INSTANCE_SWAP properties have no enumerable values — list them in the report as properties without a block. `Selected` is shown as a row inside the States block, never as its own block. A boolean property becomes a block only with display logic of its own; its description then states at which values of other axes it is available.
 
 ---
 
-## 7. Оси на странице компонента
+## 7. Axes on the component page
 
-Сетку **не строить**: в `Slot Component` один узел — сам компонент. Скилл подписывает оси вокруг него.
+**Never build the grid**: `Slot Component` holds one node — the component itself. The skill labels the axes around it.
 
 ```js
 const labelSet = await figma.getNodeByIdAsync("3:1318");       // ds-doc-component-label
@@ -461,21 +465,21 @@ function label(text, { large = false, vertical = false } = {}) {
 }
 ```
 
-Горизонтальная ось — два `Line` внутри `Horizontal Props`:
+The horizontal axis — two `Line`s inside `Horizontal Props`:
 
 ```js
-hp.children[0].appendChild(label(axisX.name, { large: true }));   // имя оси
+hp.children[0].appendChild(label(axisX.name, { large: true }));   // the axis name
 for (const v of axisX.values) hp.children[1].appendChild(label(v));
 ```
 
-Вертикальная ось — **по `Line` на уровень вложенности** внутри `Vertical Props` (контейнер горизонтальный):
+The vertical axis — **one `Line` per nesting level** inside `Vertical Props` (the container is horizontal):
 
 ```js
-// levels — сверху вниз по вложенности, каждый следующий дробит предыдущий
+// levels — top-down by nesting; each next level subdivides the previous
 const levels = [
-  { values: ["Light"],          large: true  },   // необязательный внешний уровень: тема
-  { values: axisA.values,       large: true  },   // ось A
-  { values: repeat(axisB.values, axisA.values.length), large: false },  // ось B, повторяется на каждое значение A
+  { values: ["Light"],          large: true  },   // an optional outer level: theme
+  { values: axisA.values,       large: true  },   // axis A
+  { values: repeat(axisB.values, axisA.values.length), large: false },  // axis B, repeated per value of A
 ];
 for (const lvl of levels) {
   const line = figma.createAutoLayout("VERTICAL", { name: "Line", itemSpacing: refLine.itemSpacing });
@@ -485,41 +489,43 @@ for (const lvl of levels) {
 }
 ```
 
-Число подписей на уровне = число групп, которые он накрывает. Иерархию задаёт высота скобки, а не порядок колонок. Самый внутренний уровень — фрейм с `Line` на каждый блок строк.
+The number of labels per level = the number of groups it spans. Bracket height defines the hierarchy, not column order. The innermost level is a frame with one `Line` per row block.
 
-Соответствие подписей вариантам сверять по `variantProperties` (`{ Ось: значение }`).
+Derive bracket heights and gaps from the source set's variant geometry (`x`/`y` of the variants) so the labels match what the reader actually sees. Give labels enough width for their text — a narrow instance wraps the caption mid-word.
 
-Геометрия: пустой auto-layout с `HUG` держит ширину «по памяти» и схлопывается, как только в него кладут детей. Лечится `resize(w, h)` до ширины, снятой **до** наполнения, плюс отступы, **скопированные с соседнего узла движка**, а не написанные числом:
+Verify label-to-variant correspondence via `variantProperties` (`{ Axis: value }`).
+
+Geometry: an empty auto-layout with `HUG` remembers a stale width and collapses the moment children arrive. Cure: `resize(w, h)` with the width captured **before** filling, plus paddings **copied from a neighbouring engine node**, never numbers:
 
 ```js
-const w = Math.round(slot.width);                  // снять ДО наполнения
+const w = Math.round(slot.width);                  // capture BEFORE filling
 slot.paddingLeft = hp.paddingLeft;                 // hp = Horizontal Props
 slot.paddingRight = hp.paddingRight;
 slot.paddingTop = slot.paddingBottom = hp.paddingLeft;
 slot.resize(w, slot.height);
 ```
 
-Число здесь сломает тему: в чужой копии отступы движка другие.
+A number here breaks the theme: a copy's engine paddings are different.
 
 ---
 
-## 8. Ловушки
+## 8. Traps
 
-| Симптом | Причина | Что делать |
+| Symptom | Cause | What to do |
 |---|---|---|
-| `Cannot write to node with unloaded font` | шрифт не загружен | снять фактические шрифты с узлов движка через `getStyledTextSegments(["fontName"])` и загрузить до правок |
-| `setProperties` на слоте кидает | слоты не задаются через property | `appendChild` в узел SLOT |
-| `FILL can only be set on children of auto-layout frames` | `layoutSizing*` выставлен до `appendChild` | сначала добавить в родителя, потом задавать sizing |
-| `Internal Figma Error: Parent not found` | ссылка на узел устарела после append | перечитать через `parent.children` |
-| property не найдено | резолвинг по полному имени с суффиксом | резолвить по префиксу до `#` |
-| страница не даёт добавить блок | это инстанс, а не фрейм | `detachInstance()` страничной обёртки |
-| Content пустой после детача | демо-блоки удалены, но новые не добавлены | наполнять сразу в том же вызове |
-| контекст страницы сбросился | `figma.currentPage` сбрасывается между вызовами | `setCurrentPageAsync` в начале каждого вызова, ровно один раз |
-| `in remove: Node not found` на втором ребёнке слота | после первого `remove()` в SLOT внутри инстанса остальные демо-дети становятся фантомами: id читаются, узлы не мутируются. Свежий `findOne` не спасает | рецепт «маркер»: `appendChild` пустого фрейма-маркера → демо-дети становятся смертными, снести их по свежему поиску → снести маркер → добавить свои узлы. Пустой слот демо не воскрешает |
-| то же, но после `setProperties` | **любой** `setProperties` на инстансе (включая BOOLEAN и layout-свойства) перенумеровывает id его поддерева | вся хирургия слотов — до любых `setProperties`; свойства задавать от листьев к корню: chip → строка → держатель |
-| то же при добавлении инстансов в слот | добавление инстанса **того же компонента, что демо-дети**, тоже перенумеровывает их id; плоский фрейм — нет | тот же рецепт «маркер»: демо сносить до добавления своих инстансов |
-| нужно много правок внутри слота | слот в инстансе хрупок целиком | после `detachInstance()` страницы всё поддерево — настоящие узлы, фантомов нет; переиспользовать демо-блок детача, а не собирать в живом инстансе |
-| `setProperties` со свопом варианта + мутации внутри | своп пересоздаёт поддерево инстанса | инстанцировать нужный вариант напрямую: `set.children.find(v => v.name.includes('Type=State')).createInstance()` — свопа нет |
-| `Invalid property "minWidth" for a FRAME node` на аннотации | `properties` аннотации принимают только свойства, реально заданные на узле; `BOOLEAN_OPERATION` аннотаций не принимает вовсе | подбирать `properties` по узлу (`width`/`height` почти всегда валидны), boolean-операции пропускать |
-| импортированный компонент пропал между вызовами | id импортированного по ключу компонента не вечен | переимпортировать `importComponent[Set]ByKeyAsync` в начале вызова — это дёшево |
-| шрифт не найден при `appendChild` инстанса | шрифты грузятся в пределах одного вызова | загружать список шрифтов движка в начале **каждого** пишущего вызова |
+| `Cannot write to node with unloaded font` | font not loaded | harvest the actual fonts from engine nodes via `getStyledTextSegments(["fontName"])` and load them before edits |
+| `setProperties` on a slot throws | slots are not set through properties | `appendChild` into the SLOT node |
+| `FILL can only be set on children of auto-layout frames` | `layoutSizing*` set before `appendChild` | parent first, sizing after |
+| `Internal Figma Error: Parent not found` | node reference went stale after append | re-read via `parent.children` |
+| property not found | resolved by full name with suffix | resolve by the prefix before `#` |
+| a page refuses new blocks | it is an instance, not a frame | `detachInstance()` the page wrapper |
+| Content empty after detach | demo blocks removed, nothing added | fill in the same call |
+| page context reset | `figma.currentPage` resets between calls | `setCurrentPageAsync` at the start of every call, exactly once |
+| `in remove: Node not found` on a slot's second child | after the first `remove()` in a SLOT inside an instance the remaining demo children become phantoms: ids read, nodes reject mutation. A fresh `findOne` does not help | the marker recipe: `appendChild` an empty marker frame → demo children become mortal, remove them with fresh lookups → remove the marker → append your own nodes. An empty slot does not resurrect the demo |
+| same, but after `setProperties` | **any** `setProperties` on an instance (BOOLEAN and layout properties included) re-keys its subtree ids | all slot surgery before any `setProperties`; set properties leaf to root: chip → row → host |
+| same when appending instances into a slot | appending an instance of the **same component as the demo children** also re-keys them; a plain frame does not | the same marker recipe: clear the demo before appending your instances |
+| many edits needed inside a slot | a slot in a live instance is fragile throughout | after a page `detachInstance()` the whole subtree is real nodes, no phantoms; reuse the detached demo block instead of building inside a live instance |
+| `setProperties` variant swap + inner mutations | the swap recreates the instance subtree | instance the needed variant directly: `set.children.find(v => v.name.includes('Type=State')).createInstance()` — no swap happens |
+| `Invalid property "minWidth" for a FRAME node` on an annotation | annotation `properties` accept only properties actually set on the node; `BOOLEAN_OPERATION` takes no annotations at all | pick `properties` per node (`width`/`height` are almost always valid), skip boolean operations |
+| an imported component vanished between calls | the id of a key-imported component is not permanent | re-import with `importComponent[Set]ByKeyAsync` at the start of the call — it is cheap |
+| font not found on instance `appendChild` | font loads live within one call | load the engine font list at the start of **every** writing call |

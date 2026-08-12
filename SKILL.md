@@ -1,234 +1,222 @@
 ---
 name: ds-doc-build
-description: "Автономно собирает документацию компонента в Figma на движке ds-* (библиотека «Component Spec Kit»). Вход — ссылка на сам компонент (COMPONENT_SET или COMPONENT), больше ничего не требуется. Скилл снимает инвентарь вариантов, свойств и анатомии и строит секцию из трёх страниц: changelog, specification, components. Вопросов почти не задаёт — рассчитан на поточную документацию многих компонентов подряд. Использовать, когда прислана ссылка на Figma-компонент и просят «собери документацию», «задокументируй компонент», «сделай страницы доки», «оформи по шаблону документации», «построй ds-doc», «document this component in Figma». Требует Figma MCP с правом записи."
+description: "Autonomously builds component documentation in Figma on the ds-* engine (the «Component Spec Kit» library). Input — a link to the component itself (COMPONENT_SET or COMPONENT); nothing else is required. The skill takes an inventory of variants, properties and anatomy and assembles a section of three pages: changelog, specification, components. It asks almost no questions — built for documenting many components in a row. Use when given a Figma component link and asked to «document this component in Figma», «build component docs», «generate ds-doc section», or in Russian: «собери документацию», «задокументируй компонент», «сделай страницы доки», «оформи по шаблону документации», «построй ds-doc». Requires Figma MCP with write access."
 ---
 
-# Сборка документации компонента в Figma
+# Building component documentation in Figma
 
-Вход — ссылка на продуктовый компонент. Выход — SECTION из трёх страниц, собранных из компонентов движка `ds-*`. Ничего не рисуется с нуля: паттерны инстанцируются и заполняются.
+Input — a link to a product component. Output — a SECTION of three pages assembled from `ds-*` engine components. Nothing is drawn from scratch: patterns are instantiated and filled.
 
-**Три страницы, всегда одни и те же:** `changelog`, `specification`, `components`. Без них документации не существует; больше скилл не собирает. Ни выбора страниц, ни подтверждения плана — от ссылки до готовой секции без остановок.
+**Three pages, always the same three:** `changelog`, `specification`, `components`. Documentation does not exist without them; the skill builds nothing else. No page selection, no plan confirmation — from link to finished section without stopping.
 
-**Модель распространения.** Движок — Figma-файл, который пользователь копирует к себе или подключает как библиотеку. Скилл переносимый: находит `ds-*` по имени или ключу, не по id. Весь визуал задаётся переменными коллекции `decoration` — пользователь меняет там типографику, цвета, радиусы, отступы, и документация перерисовывается целиком. Скилл в это не вмешивается.
+**Distribution model.** The engine is a Figma file the user duplicates or attaches as a library. The skill is portable: it finds `ds-*` by name or by key, never by id. All documentation visuals come from the `decoration` variable collection — the user changes typography, colours, radii and spacing there, and the documentation restyles wholesale. The skill never interferes with that mechanism.
 
-## Обязательный контекст
+## Required context
 
-| Файл | Когда читать |
+| File | When to read |
 |---|---|
-| `references/ds-engine-map.md` | до первого действия — все `ds-*`, node-id, keys, property |
-| `references/build-recipes.md` | до первого действия — сниппеты Plugin API |
-| `references/execution.md` | до первого действия — контракт вызова и гейты |
-| `references/annotations.md` | до сборки «Спецификации» |
-| `references/contract-template.md` | только при явной просьбе выгрузить markdown |
+| `references/ds-engine-map.md` | before the first action — every `ds-*`, node-ids, keys, properties |
+| `references/build-recipes.md` | before the first action — Plugin API snippets |
+| `references/execution.md` | before the first action — call contract and gates |
+| `references/annotations.md` | before building Specification |
+| `references/locales/<lang>.md` | after the language is determined — exactly one file |
+| `references/contract-template.md` | only when explicitly asked to export markdown |
 
-Скилл не привязан к модели и обвязке; имена инструментов живут только в адаптере `execution.md`.
+The skill is not tied to a model or a harness; tool names live only in the `execution.md` adapter.
 
-## Незыблемые правила
+## Language
 
-1. **Библиотека обязательна.** Движок опознаётся по коллекции `decoration` — в подключённой библиотеке (по умолчанию она называется «Component Spec Kit») или локально в файле. Ни того, ни другого → стоп с просьбой подключить (G0). Из кода подключить нельзя.
-2. **Вход — только сам компонент.** `COMPONENT_SET` или `COMPONENT`. Инстанс, фрейм, секция, группа → стоп.
-3. **Исходный компонент не трогать.** Свойства, слои, имя, описание — только чтение. Единственное исключение — перенос самого set в `Slot Component` (6.3), и это единственный вопрос во всей сборке: перед переносом — **стоп**, без явного разрешения не двигать.
-4. **Шапку не трогать.** `Title` = название раздела, `Description` = подзаголовок; оба привязаны к переменным `ds-title-description/<паттерн>/*`. Имя компонента в шапку не подставлять. Любой `setProps` по ним рвёт связь с переменной.
-5. **Чисел в тексте нет.** Размеры, отступы, радиусы, цвета, типографика → аннотации с `properties` и линейки.
-6. **Визуал не задавать значениями.** Никаких `fills`, `fontSize`, `fontName`, `cornerRadius`, `strokeWeight` числом: всё из движка через переменные `decoration`. Геометрию копировать с соседних узлов движка. В `decoration` не писать. Исключение — SECTION (5.1), и та только привязкой.
-7. **Писать только внутрь своей SECTION.**
-8. **Факты — из компонента, формулировки — по шаблонам.** Варианты, состояния, анатомия, порядок свойств берутся только из инвентаря; выдумывать их нельзя. Тексты заголовков и описаний скилл пишет сам по шаблонам раздела «Тексты» — и перечисляет сгенерированное в отчёте. Что писать нельзя даже по шаблону — там же.
-9. **Инкрементально.** Одна страница — один вызов, после каждой снять изображение и сверить.
-10. **Возвращать ID** всех созданных узлов.
+**Documentation language = the language the user wrote the request in.** Russian request → Russian texts, `ru.md`; English request → English texts, `en.md`. Read exactly one locale file; reading both wastes context.
 
-## Пайплайн
+Safeguard: after the engine is resolved, read the value of the specification header title variable and compare its language with the chosen one. A mismatch is **not an error and not a question** — name it in the report («headings come from the file in English, generated texts are Russian») and continue. The file may be intentionally mixed.
+
+## Inviolable rules
+
+1. **The library is mandatory.** The engine is recognised by its `decoration` variable collection — in an attached library (named «Component Spec Kit» by default) or locally in the file. Neither present → stop and ask to attach it (G0). It cannot be attached from code.
+2. **Input is the component itself.** `COMPONENT_SET` or `COMPONENT`. An instance, frame, section or group → stop.
+3. **Never touch the source component.** Properties, layers, name, description — read only. The single exception is moving the set itself into `Slot Component` (6.3), and it is the only question in the whole build: **stop** before the move; without explicit permission do not move it.
+4. **Never touch the header.** `Title` is the section name, `Description` its subtitle; both are bound to `ds-title-description/<pattern>/*` variables. Never put the component name there. Any `setProps` on them severs the variable binding.
+5. **No numbers in text.** Sizes, spacing, radii, colours, typography → annotations with `properties` and measurements.
+6. **Never set visuals by value.** No `fills`, `fontSize`, `fontName`, `cornerRadius`, `strokeWeight` as literals: everything comes from the engine through `decoration` variables; a hand-set value overrides the theme. Copy geometry from neighbouring engine nodes. Never write into `decoration`. Exception — the SECTION (5.1), and even that by binding only.
+7. **Write only inside your own SECTION.**
+8. **Facts from the component, wording from templates.** Variants, states, anatomy and property order come only from the inventory; inventing them is forbidden. Headings and descriptions the skill writes itself using the templates in the locale file — and lists everything generated in the report. What must never be written even from a template — see «Texts».
+9. **Incrementally.** One page per call; after each, capture an image and check.
+10. **Return the IDs** of every node created.
+
+## Pipeline
 
 ```
-G0 Готовность → G1 Вход и инвентарь → G2 Площадка → G3 Три страницы → G4 Сдача
+G0 Readiness → G1 Input and inventory → G2 Staging → G3 Three pages → G4 Handover
 ```
 
-Гейт — точка, где агент перечисляет факты до того, как что-то сделает. Формат — в `execution.md`. Гейт не закрыт — писать нельзя. Ни один гейт не ждёт ответа пользователя, кроме случаев «стоп».
+A gate is a point where the agent states facts before acting. Format — in `execution.md`. Gate not closed — no writing. No gate waits for a user reply except where «stop» is written.
 
-### G0. Готовность
+### G0. Readiness
 
-**Комплектность.** Прочитать пять файлов из таблицы. Хотя бы один не читается — назвать какой и закончить. Не восстанавливать содержимое чтением Figma-файла и не работать «по памяти»: без карты движка результат будет разный от запуска к запуску, а пользователь этого не заметит. Почти всегда причина — скилл распакован без папки `references/`.
+**Completeness.** Read the six files from the table (the locale file counts once the language is known). If any cannot be read — name it and finish. Do not reconstruct content by reading the Figma file and do not work «from memory»: without the engine map the result differs from run to run and the user will not notice. The cause is almost always a skill unpacked without its `references/` folder.
 
-**Библиотека.** `figma.teamLibrary.getAvailableLibraryVariableCollectionsAsync()`:
+**Library.** `figma.teamLibrary.getAvailableLibraryVariableCollectionsAsync()`:
 
-Движок опознаётся **по коллекции `decoration`, не по имени библиотеки**: владелец волен переименовать файл, пользователь — опубликовать свою копию под своим названием. «Component Spec Kit» — имя по умолчанию и подсказка человеку, а не условие.
+The engine is recognised **by the `decoration` collection, not by library name**: the owner may rename the file, a user may publish their own copy under their own name. «Component Spec Kit» is the default name and a hint for humans, not a condition.
 
-| Что найдено | Действие |
+| Found | Action |
 |---|---|
-| коллекция `decoration` в одной подключённой библиотеке | работать, резолвить движок **по `key`**; `libraryName` назвать в отчёте |
-| таких библиотек несколько | **стоп**: перечислить имена, спросить, какая — движок |
-| библиотеки нет, но в файле есть локальная `decoration` и `ds-*` | работать по локальной копии, резолвить **по имени**, вынести в отчёт |
-| ни того, ни другого | **стоп**: попросить `Assets` → `Libraries` → включить движок (по умолчанию «Component Spec Kit») |
+| a `decoration` collection in one attached library | proceed; resolve the engine **by `key`**; name the `libraryName` in the report |
+| several such libraries | **stop**: list the names, ask which one is the engine |
+| no library, but the file has a local `decoration` collection and `ds-*` components | proceed on the local copy; resolve **by name**; note it in the report |
+| neither | **stop**: ask to attach the engine via `Assets` → `Libraries` (named «Component Spec Kit» by default) |
 
-Подключить библиотеку из кода нельзя — только человек через UI. Поэтому проверка заканчивается просьбой, а не попыткой починить.
+A library cannot be attached from code — only a human through the UI. So the check ends with a request, not an attempted fix.
 
-### G1. Вход и инвентарь
+### G1. Input and inventory
 
-`fileKey` и `node-id` из URL (дефис между числами → двоеточие). Без `node-id` — запросить.
+`fileKey` and `node-id` from the URL (hyphen between numbers → colon). No `node-id` — ask for it.
 
-| Вход | Действие |
+| Input | Action |
 |---|---|
-| `COMPONENT_SET` | работать с ним |
-| `COMPONENT` без родителя-set | работать с ним; на `Components` не будет подписей осей |
-| `COMPONENT` внутри set | подняться к родителю, без вопроса |
-| `INSTANCE`, `FRAME`, `SECTION`, `GROUP`, прочее | **стоп** |
+| `COMPONENT_SET` | work with it |
+| `COMPONENT` with no set parent | work with it; the `components` page gets no axis labels |
+| `COMPONENT` inside a set | climb to the parent, no questions |
+| `INSTANCE`, `FRAME`, `SECTION`, `GROUP`, anything else | **stop** |
 
-Стоп = ничего не создавать, внутрь узла не лезть, не угадывать. Назвать тип и имя пришедшего узла, сказать, что нужна ссылка на сам компонент, закончить. Причина: тот же узел позже ложится в `Slot Component` (6.3) — из инстанса или фрейма его туда не положить.
+Stop = create nothing, do not descend into the node, do not guess. Name the type and name of what arrived, say a component link is needed, finish. Reason: the same node later goes into `Slot Component` (6.3) — an instance or frame cannot go there.
 
-**Инвентарь (read-only, рецепт 1).** Снять: имя, `key`, `description`, `documentationLinks`; `componentPropertyDefinitions`; фактические комбинации вариантов (не декартово произведение); дерево слоёв `defaultVariant` до глубины 3; вложенные инстансы; токены через `get_variable_defs`.
+**Inventory (read-only, recipe 1).** Capture: name, `key`, `description`, `documentationLinks`; `componentPropertyDefinitions`; the actual variant combinations (not the cartesian product); the `defaultVariant` layer tree to depth 3; nested instances; tokens via `get_variable_defs`.
 
-**Порядок свойств сохранить дословно** — в нём пойдут блоки спецификации. Не сортировать.
+**Preserve property order verbatim** — specification blocks follow it. Do not sort.
 
-**Имена — дословно, включая опечатки.** По имени идёт поиск и сверка; расхождение хуже опечатки. Замеченные опечатки перечислить в отчёте отдельным пунктом — это находка для владельца, а не повод править текст.
+**Names verbatim, typos included.** Search and verification run on names; a mismatch is worse than a typo. List noticed typos in the report as a separate item — a find for the owner, not a reason to edit the documentation text.
 
-Гейт закрывается перечнем: имя, число вариантов, оси со значениями, свойства в порядке объявления, что попадёт в лид.
+The gate closes with a list: name, variant count, axes with values, properties in declaration order, what the lead will be built from.
 
-### G2. Площадка (рецепты 2, 2а)
+### G2. Staging (recipes 2, 2a)
 
-Резолв движка: по ключу для библиотеки (`importComponentByKeyAsync`), по имени обходом страниц для локальной копии. **Компоненты подключённой библиотеки нельзя найти по имени** — Plugin API их не перечисляет, работает только импорт по ключу.
+Engine resolution: by key for a library (`importComponentByKeyAsync` / `importComponentSetByKeyAsync`), by name over pages for a local copy. **Components of an attached library cannot be found by name** — the Plugin API does not enumerate them; only key import works.
 
-Ключи в `ds-engine-map.md` — от библиотеки владельца. Если опубликована **своя** копия, ключи другие. Тогда: попросить один раз вынести на холст любой `ds-doc/*` из `Assets`, снять `instance.mainComponent.key`, дальше идти от него и держать снятые ключи в памяти сборки.
+Keys in `ds-engine-map.md` are the owner's library keys. If the user published **their own** copy, the keys differ. Then: ask them to drag any `ds-doc/*` from `Assets` onto the canvas once, read `instance.mainComponent.key`, and proceed from it, keeping harvested keys in build memory.
 
-Совпадение по имени **точное**, включая опечатки движка. Похожие имена не подбирать. Не нашлось — остановиться и вернуть три списка: что ожидалось, что найдено, чего не хватает, плюс вероятную причину.
+Name matching is **exact**, engine typos included. Do not pick similar names. Nothing found — stop and return three lists: expected, found, missing, plus the probable cause.
 
-**Пересборка.** До создания секции поискать на текущей странице SECTION с именем компонента. Нашлась — это пересборка: базу версии changelog взять из верхней записи `ds-log` в её странице `changelog`, новую секцию строить справа от существующей, старую **не трогать и не удалять** — предложить удаление в отчёте, решает владелец. Не нашлась — первая сборка, версия `1.0.0`.
+**Rebuild.** Before creating the section, look for a SECTION named after the component on the current page. Found — this is a rebuild: take the changelog version base from the top `ds-log` entry of its `changelog` page, build the new section to the right of the old one, and **do not touch or delete the old one** — offer its removal in the report; the owner decides. Not found — first build, version `1.0.0`.
 
-Затем один вызов: `setCurrentPageAsync` (ровно раз) → загрузить шрифты, снятые с узлов движка, а не захардкоженные → `SECTION` с именем компонента справа от самого правого узла → оформить (5.1).
+Then one call: `setCurrentPageAsync` (exactly once) → load fonts harvested from engine nodes, never hardcoded → a `SECTION` named after the component to the right of the rightmost node → style it (5.1).
 
-#### 5.1 Оформление SECTION
+#### 5.1 Styling the SECTION
 
-| Свойство | Переменная | Константа движка |
+| Property | Variable | Engine constant |
 |---|---|---|
-| радиус, все четыре угла | `space/global/radius/ds-radius-section` | — |
-| заливка нижняя | `color/section/ds-section-02` | opacity 1 |
-| заливка поверх | `color/section/ds-section-01` | opacity 0.01 |
-| обводка | `color/ds-tertiary` | opacity 0.4, weight 1, align `INSIDE` |
+| radius, all four corners | `space/global/radius/ds-radius-section` | — |
+| bottom fill | `color/section/ds-section-02` | opacity 1 |
+| top fill | `color/section/ds-section-01` | opacity 0.01 |
+| stroke | `color/ds-tertiary` | opacity 0.4, weight 1, align `INSIDE` |
 
-Цвета и радиус — **только `setBoundVariable` и `setBoundVariableForPaint`**. Прозрачности, толщина и выравнивание переменными не покрыты — это константы движка. Переменной нет в коллекции — остановиться и назвать какой, а не подставлять цвет руками. Если в файле уже есть готовая секция документации, снять настройки с неё: так правки владельца подхватятся сами.
+Colours and radius — **only `setBoundVariable` and `setBoundVariableForPaint`**. Opacities, stroke weight and alignment are not covered by variables — they are engine constants. A variable missing from the collection — stop and name it, never substitute a hand-picked colour. If the file already has a finished documentation section, copy the settings from it: the owner's edits carry over by themselves.
 
-Раскладка: отступ от края секции 100 по всем сторонам, страницы слева направо с шагом 200.
+Layout: 100 padding from the section edge on all sides, pages left to right with a 200 step.
 
-### G3. Три страницы — по одной за вызов
+### G3. Three pages — one per call
 
-Инстанс паттерна → `detachInstance()` → заполнить `Content`. Детач обязателен: у паттернов нет публичных property, а число блоков заранее неизвестно. `Header` после детача остаётся инстансом `ds-doc-header` — не трогать.
+Pattern instance → `detachInstance()` → fill `Content`. Detach is mandatory: patterns have no public properties and the number of blocks is unknown in advance. After detach `Header` remains a `ds-doc-header` instance — do not touch it.
 
-**Имя frame берётся из `Title` шапки этой же страницы.** После детача прочитать `Title` у инстанса `ds-doc-header` и присвоить `frame.name`. Своих названий не придумывать и списком не хардкодить: `Title` привязан к `decoration`, поэтому имена идут за темой и языком библиотеки. `Title` пуст — взять имя паттерна без префикса `ds-doc/`. Имя — снимок на момент сборки; при пересборке подтянется новое.
+**The frame name comes from the header `Title` of that same page.** After detach, read `Title` from the `ds-doc-header` instance and assign it to `frame.name`. Do not invent names and do not hardcode a list: `Title` is bound to `decoration`, so frame names follow the library's theme and language. `Title` empty — use the pattern name without the `ds-doc/` prefix. The name is a snapshot at build time; a rebuild picks up the new value.
 
-После каждой страницы — снять изображение и сверить, раскладку чинить сразу.
+After each page — capture an image and check; fix layout immediately.
 
 #### 6.1 `ds-doc/changelog`
 
-Только записи `ds-log`, одна запись = одно изменение, свежая первой сверху (`insertChild(0, …)`).
+Only `ds-log` entries, one entry = one change, newest first on top (`insertChild(0, …)`).
 
-При первой сборке пишется одна запись:
+A first build writes one entry:
 
-| Поле | Откуда |
+| Field | Source |
 |---|---|
-| версия | `1.0.0` |
+| version | `1.0.0` |
 | `Type` | `New` |
-| дата | сегодняшняя, ведущие нули обязательны (`01`, не `1`), год двузначный |
-| описание | шаблон «Первая версия компонента.» + перечень осей — см. «Тексты» |
-| `Designers` | **слот не трогать** — остаётся дефолт компонента |
-| `Show File` | `false`, слот `File` не заполнять, `✱ Image` не менять |
+| date | today, leading zeros required (`01`, not `1`), two-digit year |
+| description | the `changelog.first-entry` template from the locale |
+| `Designers` | **do not touch the slot** — the component default stays |
+| `Show File` | `false`; do not fill the `File` slot; do not change `✱ Image` |
 | `Show Description` | `true` |
 
-При пересборке поверх существующей документации версия считается от верхней записи:
+On a rebuild over existing documentation, the version counts from the top entry:
 
-| `Type` | Значение | Версия |
+| `Type` | Meaning | Version |
 |---|---|---|
-| `New` | новая версия компонента | `Major+1`, `Minor=0`, `Patch=0` |
-| `Changed` | доработка | `Minor+1`, `Patch=0` |
-| `Fixed` | исправление | `Patch+1` |
+| `New` | new component version | `Major+1`, `Minor=0`, `Patch=0` |
+| `Changed` | rework | `Minor+1`, `Patch=0` |
+| `Fixed` | fix | `Patch+1` |
 
-Тип берётся из того, что сказал пользователь. Не сказал — `Changed`. Дату задним числом ставить только по прямой просьбе.
+The type comes from what the user said. Nothing said — `Changed`. Backdate only on explicit request.
 
 #### 6.2 `ds-doc/specification`
 
-**Лид** — `ds-paragraph` напрямую в `Content`, не в `Group`. `Show Title = false`, только `Description`. Источник: непустой `description` компонента — **дословно**. Пуст — сгенерировать по шаблону лида.
+**Lead** — a `ds-paragraph` directly in `Content`, not in a `Group`. `Show Title = false`, `Description` only. Source: a non-empty component `description` — **verbatim**. Empty — generate from the locale lead template.
 
-**Анатомия** — `Group`: `ds-paragraph H1` (`Title` = «Анатомия», `Description` = «Для ознакомления структурой компонента используйте DevMode (Shift+D)») + по одному `ds-doc-component Type=Structure` на конфигурацию, `Title` = имя конфигурации, `Show Desciption = false`, в `Slot Structure` — инстанс варианта.
+**Anatomy** — a `Group`: `ds-paragraph H1` (`Title` and `Description` from the locale `anatomy.*` keys) + one `ds-doc-component Type=Structure` per configuration, `Title` = configuration name, `Show Desciption = false`, a variant instance in `Slot Structure`.
 
-Детали — аннотациями на слоях внутри инстанса: назначение в `labelMarkdown`, значения в `properties`. Каждый layout размечен. При нескольких конфигурациях аннотации **не дублировать**: первая несёт общую архитектуру, каждая следующая — только отличия.
+Details go on layers inside the instance as annotations: purpose in `labelMarkdown`, values in `properties`. Every layout annotated. With several configurations do **not duplicate** annotations: the first carries the shared architecture, each next one only its differences.
 
-**Дальше — по блоку на каждую VARIANT-ось, в порядке `componentPropertyDefinitions`.** Свойства других типов блоками не становятся: у TEXT и INSTANCE_SWAP нет перечислимых значений, строить из них таблицу не из чего — перечислить их в отчёте как свойства без блока. BOOLEAN — блок только при своей логике показа (см. исключения). Блок = `Group` из двух узлов:
+**Then — one block per VARIANT axis, in `componentPropertyDefinitions` order.** Properties of other types do not become blocks: TEXT and INSTANCE_SWAP have no enumerable values to tabulate — list them in the report as properties without a block. BOOLEAN gets a block only with display logic of its own (see exceptions). A block = a `Group` of two nodes:
 
-1. `ds-paragraph Type=H1` — `Title` из глоссария, `Description` по шаблону;
-2. `ds-doc-component Type=State`, `Show Title = false`, `Show Desciption = false`; в `Slot State` — по `ds-doc-component-state` на каждое значение.
+1. `ds-paragraph Type=H1` — `Title` from the locale glossary, `Description` from the locale template;
+2. `ds-doc-component Type=State`, `Show Title = false`, `Show Desciption = false`; in `Slot State` — one `ds-doc-component-state` per value.
 
-Описания строк: **включены** для осей конфигураций, стилей и размеров, **выключены** для состояний — там имя значения самодостаточно.
+Row descriptions: **on** for configuration, style and size axes, **off** for states — a state name speaks for itself.
 
-Исключения: `Selected` — строка внутри блока «Состояния», не отдельный блок. Булево свойство становится блоком, если у него своя логика показа.
+Exceptions: `Selected` is a row inside the States block, not a separate block. A boolean property becomes a block if it has display logic of its own.
 
-Размеры — линейкой `addMeasurement`. Стили — аннотацией `properties: ["fills"]` на превью.
+Sizes — with an `addMeasurement` ruler. Styles — a `properties: ["fills"]` annotation on the preview.
 
 #### 6.3 `ds-doc/components`
 
-**Один блок `Name Component` на компонент.** Дробить на блоки под пары осей — ошибка. Семейство из нескольких set именуется через слэш, блок на каждый, внутри блока по-прежнему один фрейм.
+**One `Name Component` block per component.** Splitting into blocks per axis pair is an error. A family of several sets is named with a slash, one block each, still one frame inside a block.
 
-| Узел | Содержимое |
+| Node | Content |
 |---|---|
-| `Name` | `Name Component#10010:1` = имя компонента; `ds-log-changelog-version` = текущая версия |
-| `Slot Component` | **один узел** — сам компонент со всеми вариантами в штатной раскладке |
-| `Horizontal Props` | `Line[0]` = имя оси (`Large=True`), `Line[1]` = значения |
-| `Vertical Props` | по `Line` на уровень вложенности; внутренний уровень — фрейм с `Line` на блок строк |
+| `Name` | `Name Component#10010:1` = component name; `ds-log-changelog-version` = current version |
+| `Slot Component` | **one node** — the component itself, all variants, in its native layout |
+| `Horizontal Props` | `Line[0]` = axis name (`Large=True`), `Line[1]` = values |
+| `Vertical Props` | one `Line` per nesting level; the innermost level is a frame with a `Line` per row block |
 
-Ось в столбцы — первая **VARIANT-ось** в порядке объявления свойств (свойства других типов осями не являются); остальные VARIANT-оси уходят в уровни `Vertical Props` в том же порядке. Уровни: `Vertical=True` у всех; крупный — `Large=True`, вспомогательный — `Large=False`. Подписи — дословные значения VARIANT.
+The columns axis is the first **VARIANT axis** in property declaration order (other property types are not axes); the remaining VARIANT axes go into `Vertical Props` levels in the same order. Levels: `Vertical=True` on all; major level `Large=True`, auxiliary `Large=False`. Labels are verbatim VARIANT values.
 
-**Перенос — по разрешению.** Сам set — единственное, что скилл трогает за пределами своей секции: у него сменится родитель и позиция в файле. Поэтому перед сборкой этой страницы — **стоп**: назвать компонент и спросить разрешение на перенос внутрь секции. Отказ — страницу собрать без `Slot Component`: блок `Name` и подписи осей на месте, слот пуст, причина в отчёте.
+**The move needs permission.** The set itself is the only thing the skill touches outside its own section: its parent and position in the file change. So before building this page — **stop**: name the component and ask permission to move it inside the section. Refused — build the page without `Slot Component`: the `Name` block and axis labels in place, the slot empty, the reason in the report.
 
-### G4. Сдача
+### G4. Handover
 
-**Обтяжка секции — последним шагом**, когда высоты окончательные: размер = габариты содержимого плюс 100 с каждой стороны, через `resizeWithoutConstraints`. `SECTION` не умеет auto-layout и сам не хугает.
+**Fit the section last**, when all heights are final: size = content bounds plus 100 on each side, via `resizeWithoutConstraints`. `SECTION` has no auto-layout and never hugs by itself.
 
-Отчёт: ссылка на секцию, три страницы, число блоков и вариантов, **список сгенерированных текстов**, замеченные опечатки исходника, что осталось незаполненным.
+Report: link to the section, the three pages, block and variant counts, **the list of generated texts**, source typos noticed, what remains unfilled. Labels — from the locale `report` section.
 
-Markdown-контракт по `contract-template.md` — только если попросили.
+Markdown contract per `contract-template.md` — only if asked.
 
-## Тексты
+## Texts
 
-Скилл пишет формулировки сам. Тон — сухой, описательный, без оценок и рекомендаций. Русский язык.
+The skill writes wording itself. Tone — dry, descriptive, no judgements or recommendations. Language — per the «Language» section; the templates, glossary and fixed strings live in `references/locales/<lang>.md`.
 
-**Глоссарий заголовков** (имя свойства → `Title` блока):
+**Never generate** — leave empty and put in the report:
 
-| Свойство | Заголовок |
-|---|---|
-| `Configuration` | Конфигурации |
-| `Style` | Стили |
-| `Size` | Размеры |
-| `State` | Состояния |
-| прочее | имя свойства как есть |
+- when to use which configuration;
+- how styles differ in meaning rather than looks;
+- text and microcopy rules;
+- do / don't recommendations;
+- an anatomy layer's purpose when it does not follow from the layer name.
 
-**Шаблоны:**
+An empty block beats a plausible fabrication: generated text must be a verifiable restatement of the inventory, not a guess at the author's intent.
 
-| Что | Шаблон |
-|---|---|
-| лид (если `description` пуст) | «**<Имя>** — компонент с <N> вариантами по осям <перечень осей>.» |
-| описание блока свойства | «Свойство `<Имя>` задаёт <заголовок в родительном падеже>: <значения через запятую>.» |
-| описание записи changelog | «Первая версия компонента. Оси: <перечень>.» |
-| описание значения (`ds-doc-component-state`) | имя значения дословно; расшифровку не дописывать |
+An anatomy layer whose purpose cannot be derived still gets annotated — the checklist requires a mark on every layout. `labelMarkdown` — the layer name in bold, no explanation; fill `properties` as usual. The layer itself goes into the report as a gap: the owner supplies the meaning.
 
-**Не генерировать никогда** — оставить пустым и вынести в отчёт:
+## Checklist
 
-- когда какую конфигурацию применять;
-- чем стили отличаются по смыслу, а не по виду;
-- правила текста и микрокопирайта;
-- рекомендации «делать / не делать»;
-- назначение слоя в анатомии, если оно не выводится из имени слоя.
-
-Пустой блок лучше правдоподобной выдумки: сгенерированный текст должен быть проверяемым пересказом инвентаря, а не догадкой о замысле автора.
-
-Слой анатомии с невыводимым назначением всё равно аннотируется — чек-лист требует разметку на каждом layout. `labelMarkdown` — имя слоя жирным, без расшифровки; `properties` заполнить как обычно. Сам слой — в отчёт, в пробелы: назначение допишет владелец.
-
-## Чек-лист
-
-1. `componentPropertyDefinitions` исходника совпадают до и после.
-2. Собраны ровно три страницы, всё внутри одной SECTION.
-3. Шапки не тронуты, привязка к `decoration` цела, имени компонента в них нет. Имя каждого frame совпадает с `Title` его шапки.
-4. Ни на одном созданном узле не задан визуал вручную; в `decoration` ничего не записано.
-5. В текстах нет чисел.
-6. Аннотации на каждом layout анатомии, `properties` и категория заполнены, между конфигурациями не дублируются.
-7. Блоки спецификации идут в порядке свойств компонента.
-8. `ds-doc/components` — один блок, в `Slot Component` один узел; подписи осей дословные.
-9. Changelog: версия и тип по правилу, дата с ведущими нулями, `Designers` не тронут, `Show File = false`.
-10. Скриншот каждой страницы просмотрен, переполнений и наложений нет.
-11. SECTION оформлена привязками к переменным и обтянута по содержимому с отступом 100.
-12. В отчёте перечислены: сгенерированные тексты, опечатки исходника, незаполненное.
+1. The source `componentPropertyDefinitions` match before and after.
+2. Exactly three pages built, everything inside one SECTION.
+3. Headers untouched, `decoration` bindings intact, no component name in them. Every frame name equals its header `Title`.
+4. No created node has hand-set visuals; nothing written into `decoration`.
+5. No numbers in text.
+6. Annotations on every anatomy layout, `properties` and category filled, none duplicated across configurations.
+7. Specification blocks follow component property order.
+8. `ds-doc/components` — one block, one node in `Slot Component`; axis labels verbatim.
+9. Changelog: version and type by rule, date with leading zeros, `Designers` untouched, `Show File = false`.
+10. Every page screenshot reviewed; no overflows or overlaps.
+11. SECTION styled with variable bindings and fitted to content with 100 padding.
+12. The report lists: generated texts, source typos, the unfilled.

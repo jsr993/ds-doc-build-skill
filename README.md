@@ -1,96 +1,98 @@
 # Component Spec Kit
 
-Движок документации дизайн-системы в Figma и скилл `ds-doc-build`, который собирает эту документацию за вас в Claude Code.
+[Русская версия →](README.ru.md)
 
-Документация компонента — это секция в Figma из трёх страниц: `Changelog`, `Specification`, `Components`. Без них документации не бывает, и ровно их собирает скилл. Страницы не рисуются с нуля: они собираются из готовых паттернов `ds-doc/*`, а весь визуал приходит из переменных коллекции `decoration`. Поменяли токен — перерисовалась вся документация сразу.
+A design-system documentation engine in Figma, and the `ds-doc-build` skill that assembles that documentation for you in Claude Code.
 
-В движке есть ещё три паттерна — `Animated`, `Tips and practices`, `Microcopy`. Скилл их не создаёт: то, что там пишут, нельзя вывести из компонента. Соберите их вручную из библиотеки, когда будет что сказать.
+Component documentation is a Figma section of three pages: `Changelog`, `Specification`, `Components`. Documentation does not exist without them, and exactly these the skill builds. Pages are never drawn from scratch: they assemble from ready-made `ds-doc/*` patterns, and every visual comes from the `decoration` variable collection. Change a token — all documentation redraws at once.
 
-Собрать секцию можно руками. Скилл делает то же самое, только быстрее и не забывает правила.
+The engine carries three more patterns — `Animated`, `Tips and practices`, `Microcopy`. The skill does not create them: what goes there cannot be derived from a component. Assemble them by hand from the library when you have something to say.
 
-**Это дизайн-представление компонента, а не руководство по реализации для разработчиков.**
+You can build a section manually. The skill does the same thing, only faster, and it never forgets the rules.
 
-- **Начать отсюда:** [OVERVIEW.md](OVERVIEW.md) — что с чем работает, какой файл брать к какому репозиторию
-- **Репозиторий:** [github.com/jsr993/ds-doc-build-skill](https://github.com/jsr993/ds-doc-build-skill)
-- **Figma-файл движка:** [Component Spec Kit в Figma Community](https://www.figma.com/community/file/1666170620013431022/component-spec-kit) — скопируйте его себе
-- **Готовый архив скилла:** [`dist/ds-doc-build.skill`](dist/ds-doc-build.skill)
-- **Как всё устроено внутри:** [ARCHITECTURE.md](ARCHITECTURE.md) — для тех, кто развивает движок и скилл
+**This is a design representation of a component, not an implementation spec for developers.**
 
-> Скилл один на оба языка: язык документации следует за языком запроса, отдельным будет только Figma-файл. Первой выходит английская версия, русская — после её стабилизации. Подробности — в [ARCHITECTURE.md](ARCHITECTURE.md).
+- **Start here:** [OVERVIEW.md](OVERVIEW.md) — what works with what, which file goes with which repository
+- **Repository:** [github.com/jsr993/ds-doc-build-skill](https://github.com/jsr993/ds-doc-build-skill)
+- **The engine Figma file:** [Component Spec Kit in Figma Community](https://www.figma.com/community/file/1666170620013431022/component-spec-kit) — duplicate it
+- **Ready-made skill archive:** [`dist/ds-doc-build.skill`](dist/ds-doc-build.skill)
+- **How it all works inside:** [ARCHITECTURE.md](ARCHITECTURE.md) — for those who develop the engine and the skill
+
+> One skill serves both languages: **the documentation language follows the language of your request**. Write in English — block content comes out English; write in Russian — Russian. Section headings, meanwhile, come from the Figma file's variables and follow its language.
 
 ---
 
-## Часть 1. Как работать с документацией в Figma
+## Part 1. Working with the documentation in Figma
 
-### Подготовка файла
+### Preparing the file
 
-1. Скопируйте файл движка себе в проект.
-2. Измените токены коллекции **Local Variables → `decoration`** под свою дизайн-систему: цвета, отступы, радиусы, типографику.
-3. Опубликуйте файл и подключите его как библиотеку — либо собирайте документацию прямо в копии.
+1. Duplicate the engine file into your project.
+2. Change the tokens in **Local Variables → `decoration`** to match your design system: colours, spacing, radii, typography.
+3. Publish the file and attach it as a library — or build documentation right in the copy.
 
-**При публикации проверьте, что переменные ушли вместе с компонентами.** Коллекция `decoration` должна попасть в публикацию: если она скрыта от неё (`Hide from publishing`) или план Figma не поддерживает публикацию переменных, компоненты будут импортироваться нормально, а сборка остановится на оформлении секции — скиллу будет не к чему привязаться. Симптом ровно такой: страницы собираются, секция — нет. Проверить можно до сборки: в файле-потребителе откройте `Libraries` — у библиотеки движка должны значиться и components, и variables.
+**When publishing, check that the variables shipped along with the components.** The `decoration` collection must make it into the publication: if it is hidden (`Hide from publishing`) or your Figma plan does not publish variables, components will import fine and the build will stop at section styling — nothing for the skill to bind to. The symptom is exactly that: pages assemble, the section does not. You can check before building: in the consuming file open `Libraries` — the engine library must list both components and variables.
 
-Скилл ищет компоненты движка **по имени**, а не по id, поэтому работает в любой копии файла. Имена движка — часть контракта: переименовывать `ds-*` нельзя, включая опечатки в них (`ds-doc/interation`, `Show Desciption#757:0`).
+The skill finds engine components **by name**, not by id, so it works in any copy of the file. Engine names are part of the contract: never rename `ds-*`, typos included (`ds-doc/interation`, `Show Desciption#757:0`).
 
-### Как устроена секция
+### How a section is built
 
-Имена страниц скилл не придумывает и не хранит списком — он берёт их из `Title` шапки, а тот привязан к переменной `decoration`. Поэтому имена идут за темой и языком файла; ниже — то, что получается в файле-первоисточнике.
+The skill neither invents page names nor keeps a list of them — it reads them from the header `Title`, which is bound to a `decoration` variable. Names therefore follow the file's theme and language; below is what the source file produces.
 
-| Страница | Паттерн | Про что |
+| Page | Pattern | About |
 |---|---|---|
-| `Changelog` | `ds-doc/changelog` | версия, тип изменения, дата, авторы |
-| `Specification` | `ds-doc/specification` | лид, анатомия, блок на каждое свойство |
-| `Components` | `ds-doc/components` | сам component set с подписями осей |
-| `Animated` | `ds-doc/interation` | триггер → реакция, motion-токены — **вручную** |
-| `Tips and practices` | `ds-doc/tips-practices` | пары «делать / не делать» — **вручную** |
-| `Microcopy` | `ds-doc/microcopy` | правила текста по слотам — **вручную** |
+| `Changelog` | `ds-doc/changelog` | version, change type, date, authors |
+| `Specification` | `ds-doc/specification` | lead, anatomy, one block per axis |
+| `Components` | `ds-doc/components` | the component set itself with axis labels |
+| `Animated` | `ds-doc/interation` | trigger → reaction, motion tokens — **by hand** |
+| `Tips and practices` | `ds-doc/tips-practices` | do / don't pairs — **by hand** |
+| `Microcopy` | `ds-doc/microcopy` | text rules per slot — **by hand** |
 
-Порядок сборки страницы: инстанс паттерна → `Detach` → наполнить `Content` атомами `ds-paragraph` и `ds-doc-component`. Детач нужен потому, что число блоков заранее неизвестно, а публичных свойств у паттернов нет. **Шапка внутри страницы остаётся инстансом `ds-doc-header`** — её трогать не нужно.
+Page assembly order: pattern instance → `Detach` → fill `Content` with `ds-paragraph` and `ds-doc-component` atoms. Detach is needed because the number of blocks is unknown in advance and patterns expose no public properties. **The header inside a page stays a `ds-doc-header` instance** — leave it alone.
 
-Все страницы одного компонента складываются в одну секцию слева направо, отступ от края 100, шаг между страницами 200. Секция не умеет auto-layout — обтягивайте её вручную последним шагом.
+All pages of one component go into one section, left to right, 100 from the edge, 200 between pages. A section has no auto-layout — fit it manually as the last step.
 
-### Правила оформления
+### Formatting rules
 
-1. **Шапку не трогать.** `Title` — это название раздела (`Changelog`, `Specification`, `Components`), а не имя компонента. Все три текста шапки привязаны к переменным `decoration`; любая перезапись рвёт связь.
-2. **Чисел в тексте нет.** Размеры, отступы, радиусы, цвета и типографику показывайте аннотациями Figma (с заполненным `properties`) и линейками `addMeasurement`. Тогда значения обновляются вслед за компонентом, а документацию не переписывают — в неё только добавляют и из неё убирают блоки.
-3. **Визуал не задавать значениями.** Никаких `fills`, `fontSize`, `cornerRadius` числом. Только привязка к переменным `decoration` — иначе блок выпадет из темы. В саму коллекцию `decoration` скилл не пишет.
-4. **Порядок блоков «Спецификации» = порядок свойств компонента.** Не сортировать, не перегруппировывать.
-5. **Анатомия — про архитектуру, а не про картинку.** Блок на каждую конфигурацию, аннотации только на отличия. Дублировать одинаковые аннотации на всех блоках — ошибка.
-6. **Страница «Компоненты» — один блок на компонент.** В `Slot Component` кладётся сам component set целиком, а не набор инстансов. Семейство из нескольких set именуется через слэш: `Chips / Item`.
-7. **Факты не выдумываются.** Варианты, состояния, анатомия и порядок свойств берутся из компонента. Формулировки заголовков и описаний скилл пишет сам по шаблонам — и перечисляет сгенерированное в отчёте, чтобы вы видели, что перечитать. Смысл, который из компонента не выводится — когда какую конфигурацию применять, чем стили отличаются по назначению, правила текста, рекомендации, — остаётся пустым: пустой блок лучше правдоподобной выдумки.
-8. **Имена переносятся дословно**, включая опечатки исходника: по имени идёт поиск и сверка. Замеченные опечатки выносятся в отчёт, а не правятся в тексте документации.
+1. **Never touch the header.** `Title` is the section name (`Changelog`, `Specification`, `Components`), not the component name. All three header texts are bound to `decoration` variables; any overwrite severs the link.
+2. **No numbers in text.** Show sizes, spacing, radii, colours and typography with Figma annotations (with `properties` filled) and `addMeasurement` rulers. Values then update with the component, and documentation is never rewritten — blocks are only added or removed.
+3. **Never set visuals by value.** No literal `fills`, `fontSize`, `cornerRadius`. Bind to `decoration` variables only — otherwise the block falls out of the theme. The skill never writes into the `decoration` collection itself.
+4. **Specification block order = component property order.** No sorting, no regrouping.
+5. **Anatomy is about architecture, not the picture.** One block per configuration, annotations only on the differences. Duplicating identical annotations on every block is an error.
+6. **The Components page is one block per component.** `Slot Component` holds the component set itself, whole — not a spread of instances. A family of several sets is named with a slash: `Chips / Item`.
+7. **Facts are never invented.** Variants, states, anatomy and property order come from the component. Headings and descriptions the skill words itself from templates — and lists everything generated in the report so you know what to re-read. Meaning that cannot be derived from the component — when to use which configuration, how styles differ in purpose, text rules, recommendations — stays empty: an empty block beats a plausible fabrication.
+8. **Names transfer verbatim**, source typos included: search and verification run on names. Noticed typos go into the report, never corrected in documentation text.
 
-### Категории аннотаций
+### Annotation categories
 
-Пресеты аннотаций в файле: **Development** (green), **Interaction** (blue), **Accessibility** (pink), **Content** (orange).
+Annotation presets in the file: **Development** (green), **Interaction** (blue), **Accessibility** (pink), **Content** (orange).
 
 ---
 
-## Часть 2. Скилл `ds-doc-build` для Claude Code
+## Part 2. The `ds-doc-build` skill for Claude Code
 
-Скилл читает компонент, снимает инвентарь вариантов и свойств и строит секцию из трёх паттернов `ds-doc`. Исходный компонент он только читает.
+The skill reads the component, takes an inventory of variants and properties, and builds a section from the three `ds-doc` patterns. The source component it only reads.
 
-**Работает автономно.** От ссылки до готовой секции — без плана на подтверждение и без интервью. Это сделано под поточную задачу: задокументировать подряд десятки компонентов, а не один. Вопрос возникает ровно там, где скилл останавливается: нет библиотеки, на входе не компонент, не нашлась переменная движка.
+**It runs autonomously.** From link to finished section — no plan to confirm, no interview. Built for the batch job: documenting dozens of components in a row, not one. Questions arise exactly where the skill stops: no library, input is not a component, an engine variable is missing — and once before moving your component into the slot on the `Components` page.
 
-### Что понадобится
+### What you need
 
-- **Claude Code** — клиент Claude, который работает в терминале.
-- **Figma MCP** с правом записи в файл (write to canvas).
-- Файл, в котором доступен движок `ds-*`: ваша копия или подключённая библиотека.
+- **Claude Code** — the Claude client that lives in the terminal.
+- **Figma MCP** with write access to the file (write to canvas).
+- A file where the `ds-*` engine is available: your copy, or an attached library.
 
-Библиотеку скилл проверяет нулевым шагом и опознаёт её **по коллекции переменных `decoration`**, а не по имени. Поэтому своя копия, опубликованная под своим названием, работает наравне с оригиналом; имя «Component Spec Kit» — только значение по умолчанию. Ни библиотеки, ни локальных `ds-*` в файле — сборка останавливается с просьбой подключить: подключить библиотеку из кода нельзя, Plugin API этого не умеет.
+The skill checks the library as step zero and recognises it **by the `decoration` variable collection**, not by name. Your own copy published under your own name works the same as the original; «Component Spec Kit» is just the default. Neither a library nor local `ds-*` in the file — the build stops and asks to attach one: a library cannot be attached from code, the Plugin API cannot do it.
 
-### Установка скилла
+### Installing the skill
 
-1. Скачайте [`dist/ds-doc-build.skill`](dist/ds-doc-build.skill) — это обычный zip-архив.
-2. Распакуйте его в папку скиллов:
+1. Download [`dist/ds-doc-build.skill`](dist/ds-doc-build.skill) — an ordinary zip archive.
+2. Unpack it into your skills folder:
 
    ```
    macOS / Linux   ~/.claude/skills/ds-doc-build/
    Windows         %USERPROFILE%\.claude\skills\ds-doc-build\
    ```
 
-3. Проверьте структуру — должно получиться так:
+3. Check the structure — it must look like this:
 
    ```
    ds-doc-build/
@@ -100,109 +102,117 @@
        ├── build-recipes.md
        ├── execution.md
        ├── annotations.md
-       └── contract-template.md
+       ├── contract-template.md
+       └── locales/
+           ├── en.md
+           └── ru.md
    ```
 
-   **Без папки `references` скилл откажется работать.** Он проверяет комплектность нулевым шагом и останавливается, если хотя бы один файл не читается: без карты движка и рецептов результат был бы разным от запуска к запуску, а вы бы этого не заметили.
+   **Without the `references` folder the skill refuses to run.** It verifies its own completeness as step zero and stops if a single file is unreadable: without the engine map and the recipes the output would differ from run to run, and you would not notice.
 
-4. Claude Code подхватывает изменения в папке скиллов на лету. Перезапуск нужен, только если папки `skills` раньше не существовало.
+4. Claude Code picks up skill folder changes on the fly. A restart is needed only if the `skills` folder did not exist before.
 
-Альтернатива архиву — клонировать репозиторий и положить симлинк:
+An alternative to the archive — clone the repository and symlink it:
 
 ```bash
-git clone https://github.com/jsr993/ds-doc-build-skill.git ~/src/component-documentation
-ln -s ~/src/component-documentation ~/.claude/skills/ds-doc-build
+git clone https://github.com/jsr993/ds-doc-build-skill.git ~/src/ds-doc-build-skill
+ln -s ~/src/ds-doc-build-skill ~/.claude/skills/ds-doc-build
 ```
 
-### Если ставите впервые
+### First-time setup
 
-1. Установите Claude Code и войдите в аккаунт Claude.
-2. Подключите Figma MCP:
+1. Install Claude Code and sign in to your Claude account.
+2. Attach the Figma MCP:
 
    ```bash
    claude mcp add --scope user --transport http figma https://mcp.figma.com/mcp
    ```
 
-3. В Claude Code введите `/mcp`, выберите `figma` и авторизуйтесь. Figma спросит разрешение на запись в файлы — его нужно дать, иначе скилл сможет только читать.
-4. Дальше — установка скилла из пункта выше.
+3. In Claude Code type `/mcp`, pick `figma`, authorise. Figma will ask for permission to write to files — grant it, otherwise the skill can only read.
+4. Then install the skill as above.
 
-### Как запускать
+### How to run it
 
-Пришлите ссылку на **сам компонент** — `COMPONENT` или `COMPONENT_SET`:
+Send a link to **the component itself** — a `COMPONENT` or `COMPONENT_SET`:
 
 ```
-Собери документацию по компоненту
+Document this component
 https://www.figma.com/design/<fileKey>/<file>?node-id=3014-2258
 ```
 
-Ссылка на инстанс, фрейм, секцию или группу не подойдёт: скилл назовёт тип пришедшего узла, скажет, что нужна ссылка на компонент, и остановится. Это не придирка — тот же узел позже кладётся в `Slot Component` на странице «Компоненты», а из инстанса его туда не положить.
+A link to an instance, frame, section or group will not do: the skill names the type of what arrived, says it needs a component link, and stops. Not pedantry — that same node later goes into `Slot Component` on the Components page, and an instance cannot go there.
 
-Дальше вмешиваться не нужно. Скилл отчитается инвентарём — сколько вариантов, какие оси, в каком порядке пойдут блоки спецификации — и соберёт три страницы, показывая снимок после каждой.
+From there you barely intervene. The skill reports the inventory — how many variants, which axes, in what order the specification blocks will go — and builds the three pages, showing a snapshot after each. The single question in the whole build is permission to move your component set inside the documentation section.
 
-Можно вызвать скилл и напрямую: `/ds-doc-build`.
+You can also invoke the skill directly: `/ds-doc-build`.
 
-### Где он всё-таки остановится
+### Where it will still stop
 
-Остановок ровно четыре, и все — про то, что дальше идти бессмысленно:
+Exactly five stops, all about it being pointless or impermissible to continue:
 
-- не читаются файлы `references/` — скилл распакован не полностью;
-- в файле нет ни библиотеки, ни локальных `ds-*`;
-- на входе не компонент, а инстанс, фрейм, секция или группа;
-- не нашёлся компонент движка или переменная `decoration`.
+- the `references/` files are unreadable — the skill was unpacked incompletely;
+- the file has neither a library nor local `ds-*`;
+- the input is not a component but an instance, frame, section or group;
+- an engine component or a `decoration` variable was not found;
+- moving your component set into `Slot Component` — the only action outside the documentation section, never done without permission.
 
-Во всём остальном скилл выбирает сам и пишет, что выбрал. Это осознанный размен: в потоке из полусотни компонентов вопрос на каждом — это не аккуратность, а остановка работы.
+Everything else the skill decides itself and reports what it decided. A deliberate trade: across a stream of fifty components, a question per component is not care — it is a full stop.
 
-### Что он решает за вас
+### What it decides for you
 
-| Решение | Правило |
+| Decision | Rule |
 |---|---|
-| версия и тип changelog | первая сборка — `1.0.0 / New`; пересборка — `New` → major+1, `Changed` → minor+1, `Fixed` → patch+1, по умолчанию `Changed` |
-| дата | сегодняшняя |
-| авторы | слот `Designers` не трогается — остаётся дефолт компонента |
-| лид спецификации | непустой `description` компонента дословно, пустой — по шаблону |
-| заголовки блоков | `Configuration` → Конфигурации, `Style` → Стили, `Size` → Размеры, `State` → Состояния, остальные — как в компоненте |
-| описания строк | включены для конфигураций, стилей и размеров; выключены для состояний |
-| ось в столбцы на `Components` | первая ось в порядке объявления свойств |
+| changelog version and type | first build — `1.0.0 / New`; rebuild — `New` → major+1, `Changed` → minor+1, `Fixed` → patch+1, default `Changed` |
+| date | today |
+| authors | the `Designers` slot is untouched — the component default stays |
+| specification lead | a non-empty component `description` verbatim; empty — from the template |
+| block headings | from the locale glossary: `Configuration` → Configurations, `Style` → Styles, `Size` → Sizes, `State` → States; the rest as in the component |
+| row descriptions | on for configurations, styles and sizes; off for states |
+| the columns axis on `Components` | the first VARIANT axis in property declaration order |
 
-Всё, что скилл написал сам, он перечисляет в отчёте отдельным списком. Это место, куда стоит заглянуть, — остальное проверяемо по компоненту.
+Everything the skill wrote itself it lists in the report as a separate list. That is the place worth reading — the rest is verifiable against the component.
 
-### Чего скилл не делает
+### What the skill does not do
 
-- Не меняет исходный компонент — свойства, слои, имя и описание только читает.
-- Не пишет ничего за пределами своей секции.
-- Не задаёт визуал значениями и не пишет в коллекцию `decoration`.
-- Не придумывает смысл: назначение конфигураций, разницу стилей, правила текста и рекомендации он оставит пустыми и перечислит в отчёте, а не замаскирует плейсхолдером.
-- Не собирает `Animated`, `Tips and practices` и `Microcopy` — эти страницы делаются руками.
+- It never changes the source component — properties, layers, name and description are read-only. Moving the set into `Slot Component` happens only with your permission.
+- It writes nothing outside its own section.
+- It never sets visuals by value and never writes into the `decoration` collection.
+- It never invents meaning: configuration purposes, style differences, text rules and recommendations it leaves empty and lists in the report rather than masking with a placeholder.
+- It does not build `Animated`, `Tips and practices` or `Microcopy` — those pages are made by hand.
 
-### Что на выходе
+### What you get
 
-Секция в Figma и отчёт: ссылка на секцию, три страницы, число блоков и вариантов, список сгенерированных текстов, замеченные опечатки в именах исходника, перечень пробелов. По отдельному запросу скилл выгружает markdown-контракт для разработки — обратным проходом по уже построенным страницам, что заодно проверяет, читается ли собранное однозначно.
+A section in Figma and a report: a link to the section, the three pages, block and variant counts, the list of generated texts, typos noticed in source names, the list of gaps. On separate request the skill exports a markdown contract — a reverse pass over the pages already built, which doubles as a check that what was assembled reads unambiguously.
 
 ---
 
-## Структура репозитория
+## Repository structure
 
 ```
 .
-├── SKILL.md                      # сам скилл: пайплайн, правила, чек-лист
+├── SKILL.md                      # the skill itself: pipeline, rules, checklist
 ├── references/
-│   ├── ds-engine-map.md          # карта движка: имена, node-id, keys, property
-│   ├── build-recipes.md          # сниппеты Figma Plugin API
-│   ├── execution.md              # контракт вызова, адаптеры обвязок, гейты
-│   ├── annotations.md            # аннотации и линейки
-│   └── contract-template.md      # шаблон markdown-контракта
+│   ├── ds-engine-map.md          # engine map: names, node-ids, keys, properties
+│   ├── build-recipes.md          # Figma Plugin API snippets
+│   ├── execution.md              # call contract, harness adapters, gates
+│   ├── annotations.md            # annotations and measurements
+│   ├── contract-template.md      # markdown contract template
+│   └── locales/                  # the strings the skill writes into documentation
+│       ├── en.md
+│       └── ru.md
 ├── dist/
-│   └── ds-doc-build.skill        # собранный архив для установки
+│   └── ds-doc-build.skill        # the built archive for installation
 ├── scripts/
-│   ├── pack.sh                   # пересобрать архив (macOS / Linux)
-│   └── pack.ps1                  # пересобрать архив (Windows)
-├── OVERVIEW.md                   # сквозной документ: две половины и как их спарить
-├── ARCHITECTURE.md               # слои решения, локализация, версионирование
+│   ├── pack.sh                   # rebuild the archive (macOS / Linux)
+│   └── pack.ps1                  # rebuild the archive (Windows)
+├── OVERVIEW.md                   # the cross-cutting doc: two halves and how they pair
+├── ARCHITECTURE.md               # solution layers, localisation, versioning
 ├── CHANGELOG.md
-└── README.md
+├── README.md
+└── README.ru.md                  # the Russian version of this file
 ```
 
-### Пересобрать архив после правок
+### Rebuilding the archive after edits
 
 ```bash
 ./scripts/pack.sh          # macOS / Linux
@@ -211,10 +221,10 @@ powershell -File scripts/pack.ps1   # Windows
 
 ---
 
-## Обратная связь
+## Feedback
 
-Телеграм [@jsr_i](https://t.me/jsr_i), почта [ishmirzaev.jasur@gmail.com](mailto:ishmirzaev.jasur@gmail.com).
+Telegram [@jsr_i](https://t.me/jsr_i), email [ishmirzaev.jasur@gmail.com](mailto:ishmirzaev.jasur@gmail.com).
 
-## Лицензия
+## License
 
 [MIT](LICENSE).

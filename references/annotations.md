@@ -1,55 +1,57 @@
-# Аннотации и линейки
+# Annotations and measurements
 
-Правило: **в тексте документации нет чисел.** Всё, что имеет числовое или токенное значение, показывается аннотацией Figma на конкретном слое. Значения обновляются вслед за компонентом — доку не переписывают, а только добавляют и убирают блоки.
+The rule: **no numbers in documentation text.** Anything with a numeric or token value is shown as a Figma annotation on the specific layer. Values then update with the component — documentation is never rewritten, only blocks are added or removed.
 
-## Категории
+## Categories
 
-`figma.annotations.getAnnotationCategoriesAsync()`. В файле четыре пресета:
+`figma.annotations.getAnnotationCategoriesAsync()`. The file ships four presets:
 
-| Категория | Цвет | Чем помечать |
+| Category | Colour | What to mark with it |
 |---|---|---|
-| `Development` | green | размеры, отступы, токены, стили текста, заливки |
-| `Interaction` | blue | поведение и реакция на действие |
-| `Accessibility` | pink | фокус, контраст, зона нажатия, скринридер |
-| `Content` | orange | правила текста и содержимого |
+| `Development` | green | sizes, spacing, tokens, text styles, fills |
+| `Interaction` | blue | behaviour and reaction to actions |
+| `Accessibility` | pink | focus, contrast, hit area, screen reader |
+| `Content` | orange | text and content rules |
 
-Дефолт — `Development`. Новые категории не создавать (`addAnnotationCategoryAsync` не вызывать). Точное распределение уточняет владелец библиотеки.
+Default — `Development`. Never create new categories (do not call `addAnnotationCategoryAsync`). The exact mapping is refined by the library owner.
 
-## Формат
+## Format
 
 ```js
 node.annotations = [{
-  labelMarkdown: "**<Имя слоя>** — что этот слой делает в компоненте.",
+  labelMarkdown: "**<Layer name>** — what this layer does in the component.",
   categoryId: developmentCategoryId,
   properties: [{ type: "minWidth" }, { type: "itemSpacing" }, { type: "padding" }]
 }];
 ```
 
-- `labelMarkdown` — термин `**жирным**`, тире, назначение слоя. Назначение, не пересказ значения.
-- `properties` — Figma сама подтягивает значение с узла и показывает токен, если свойство к нему привязано. В `labelMarkdown` числа не дублировать.
-- `annotations` — read-only массив: присваивать целиком.
+- `labelMarkdown` — the term in `**bold**`, a dash, the layer's purpose. Purpose, not a restatement of the value.
+- `properties` — Figma pulls the value from the node itself and shows the token when the property is bound to one. Never duplicate numbers in `labelMarkdown`.
+- `annotations` is a read-only array: assign it whole.
+
+`properties` accept only properties actually set on that node — `minWidth` on a plain FRAME throws `Invalid property`. `width`/`height` are almost always valid. `BOOLEAN_OPERATION` nodes take no annotations at all — skip them.
 
 ## `AnnotationPropertyType`
 
 `width` · `height` · `maxWidth` · `minWidth` · `maxHeight` · `minHeight` · `fills` · `strokes` · `effects` · `strokeWeight` · `cornerRadius` · `textStyleId` · `textAlignHorizontal` · `fontFamily` · `fontStyle` · `fontSize` · `fontWeight` · `lineHeight` · `letterSpacing` · `itemSpacing` · `padding` · `layoutMode` · `alignItems` · `opacity` · `mainComponent` · `gridRowGap` · `gridColumnGap` · `gridRowCount` · `gridColumnCount` · `gridRowAnchorIndex` · `gridColumnAnchorIndex` · `gridRowSpan` · `gridColumnSpan`
 
-Типовое соответствие:
+Typical mapping:
 
-| Слой | `properties` |
+| Layer | `properties` |
 |---|---|
-| корневой контейнер-подложка | `minWidth`, `itemSpacing`, `padding` |
-| боковой слот под иконку | `minWidth`, `minHeight` |
-| контейнер текста | `minHeight` |
-| текстовый слой | `textStyleId`, `fills` |
-| превью в блоке стилей | `fills` |
+| root backing container | `minWidth`, `itemSpacing`, `padding` |
+| side icon slot | `minWidth`, `minHeight` |
+| text container | `minHeight` |
+| text layer | `textStyleId`, `fills` |
+| preview in a styles block | `fills` |
 
-## Куда вешать
+## Where to attach
 
-На слой внутри инстанса, лежащего в `Slot Structure`. Путь — `instance.findAll(...)` по имени слоя из инвентаря. Аннотация живёт на узле документации, а не на исходнике, поэтому переживает правку компонента.
+On a layer inside the instance sitting in `Slot Structure`. Path — `instance.findAll(...)` by the layer name from the inventory. The annotation lives on the documentation node, not on the source, so it survives component edits.
 
-**Не дублировать.** При нескольких конфигурациях первый блок несёт общую архитектуру, каждый следующий — только свои отличия. Одинаковая аннотация на каждом блоке — ошибка, а не полнота.
+**Do not duplicate.** With several configurations the first block carries the shared architecture, each following one only its own differences. The same annotation on every block is an error, not thoroughness.
 
-## Линейки
+## Measurements
 
 ```js
 if (figma.editorType === "dev") {
@@ -60,10 +62,10 @@ if (figma.editorType === "dev") {
 }
 ```
 
-- Оси не смешивать: `TOP → BOTTOM` или `LEFT → RIGHT`, не `LEFT → TOP`.
-- Доступно **только в Dev Mode**. Вне его — вынести в отчёт как ручной шаг, не подменять числом в тексте.
-- Линейка на самого себя (`TOP → BOTTOM`) даёт высоту слоя — так размечается блок размеров.
+- Never mix axes: `TOP → BOTTOM` or `LEFT → RIGHT`, not `LEFT → TOP`.
+- Available **only in Dev Mode**. Outside it — put the measurement in the report as a manual step; never substitute a number in text.
+- A self-measurement (`TOP → BOTTOM`) gives the layer height — that is how a sizes block is marked.
 
-## Подсказка читателю
+## Hint for the reader
 
-Описание заголовка «Анатомия» — приглашение открыть Dev Mode: «Для ознакомления структурой компонента используйте DevMode (Shift+D)». Без него читатель не увидит ни аннотаций, ни линеек.
+The «Anatomy» heading description is an invitation to open Dev Mode (the `anatomy.description` locale string). Without it the reader sees neither annotations nor measurements.

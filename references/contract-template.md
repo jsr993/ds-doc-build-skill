@@ -1,21 +1,21 @@
-# Шаблон markdown-контракта (шаг 7, опционально)
+# Markdown contract template (handover step, optional)
 
-Обратный проход: читаем уже собранную в Figma секцию и выгружаем в один файл `<slug>.md`.
-Порядок разделов фиксирован. Пустой раздел не удалять — писать `_Не задокументировано._`
+A reverse pass: read the section already built in Figma and export it into a single `<slug>.md`.
+Section order is fixed. Never delete an empty section — write `_Not documented._`
 
 ```markdown
 ---
-component: <Title из ds-doc-header>
+component: <Title from ds-doc-header>
 slug: <kebab-case>
 chapter: <Chapter>
 summary: <Description>
-version: <Major.Minor.Patch последней записи>
+version: <Major.Minor.Patch of the latest entry>
 updated: <YYYY-MM-DD>
 status: draft | verified | deprecated
 figma:
   file: <fileKey>
-  section: <node-id секции документации>
-  source_component: <node-id исходного component set>
+  section: <node-id of the documentation section>
+  source_component: <node-id of the source component set>
 platforms: [react, flutter]
 open_questions: <N>
 ---
@@ -24,56 +24,56 @@ open_questions: <N>
 
 <summary>
 
-## 1. Спецификация
+## 1. Specification
 
-### Анатомия
-| # | Часть | Обязательность | Назначение |
+### Anatomy
+| # | Part | Required | Purpose |
 
-### Состояния
-| Состояние | Описание | Приоритет |
+### States
+| State | Description | Priority |
 
-## 2. Варианты
+## 2. Variants
 
-Матрица `<ось Y>` × `<ось X>`:
+Matrix `<Y axis>` × `<X axis>`:
 
 | | <X₁> | <X₂> |
 |---|---|---|
 | **<Y₁>** | ✓ | — |
 
-Соответствие свойств:
+Property mapping:
 
-| Figma property | Значения | prop (react) | prop (flutter) |
+| Figma property | Values | prop (react) | prop (flutter) |
 
-Комбинации, объявленные в component set, но не отрисованные: <список или «нет»>
+Combinations declared in the component set but not drawn: <list or "none">
 
-## 3. Взаимодействие
-| Триггер | Реакция | Контекст |
+## 3. Interaction
+| Trigger | Reaction | Context |
 
-Motion-токены: <motion.{context}.{direction}.{property} или Q-###>
+Motion tokens: <motion.{context}.{direction}.{property} or Q-###>
 
-## 4. Рекомендации
-**Делать** / **Не делать**
+## 4. Guidelines
+**Do** / **Don't**
 
-## 5. Редактура
-| Слот | Правило | ✓ | ✗ |
+## 5. Microcopy
+| Slot | Rule | ✓ | ✗ |
 
-## 6. Токены
-| Свойство | Токен | Fallback |
+## 6. Tokens
+| Property | Token | Fallback |
 
-## 7. История
-| Версия | Дата | Тип | Изменение | Автор |
+## 7. History
+| Version | Date | Type | Change | Author |
 
-## 8. Открытые вопросы
-| ID | Вопрос | Блокирует | Рекомендация |
+## 8. Open questions
+| ID | Question | Blocking | Recommendation |
 
-## Источник
-Figma: <ссылки по разделам> · собрано <дата>, скилл `ds-doc-build`
+## Source
+Figma: <links per section> · built <date>, skill `ds-doc-build`
 ```
 
-## Правила
+## Rules
 
-- Русский язык. Имена Figma property и значения вариантов — дословно, без перевода.
-- `MUST` / `SHOULD` / `MAY` для нормативных требований в разделах 1–5.
-- Наблюдение из Figma — факт. Предложенный API — допущение, помечать явно.
-- Токены документации (`space/doc/*`, `color/ds-*`, `typography/*`) в контракт **не переносить** — только токены самого компонента.
-- Дефолты движка (`Title`, `Description`, `State name`, `Label`, `Name Component`) в контракт не попадают никогда: их наличие означает незаполненный блок → `Q-###`.
+- Written in the documentation language of the build. Figma property names and variant values — verbatim, never translated.
+- `MUST` / `SHOULD` / `MAY` for normative requirements in sections 1–5.
+- An observation from Figma is a fact. A proposed API is an assumption — mark it explicitly.
+- Documentation tokens (`space/doc/*`, `color/ds-*`, `typography/*`) never go into the contract — only the component's own tokens.
+- Engine defaults (`Title`, `Description`, `State name`, `Label`, `Name Component`) never enter the contract: their presence means an unfilled block → `Q-###`.
