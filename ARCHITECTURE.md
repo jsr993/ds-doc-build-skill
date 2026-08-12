@@ -1,121 +1,119 @@
-# Архитектура решения
+# Solution architecture
 
-Документ для тех, кто развивает движок и скилл. Пользователю он не нужен — пользователю нужен [README](README.md).
+A document for those who develop the engine and the skill. Users do not need it — users need the [README](README.md).
 
-> Написан по-русски, потому что сейчас это рабочий документ мейнтейнера. Перевод на английский — вместе с разделением README.
-
-Здесь описано только устройство: из чего решение состоит, какими контрактами связано и по каким правилам меняется. Планов, роадмапа и очереди задач здесь нет — они ведутся в рабочих документах проекта, вне этого репозитория.
+This describes only the construction: what the solution consists of, which contracts bind the parts, and by what rules it changes. There are no plans, roadmaps or task queues here — those live in the project's working documents, outside this repository.
 
 ---
 
-## 1. Что это за решение
+## 1. What this solution is
 
-Три слоя, которые развиваются отдельно и связаны узкими контрактами.
+Three layers that evolve separately and are bound by narrow contracts.
 
-| Слой | Где живёт | Кто меняет | Контракт с соседом |
+| Layer | Where it lives | Who changes it | Contract with its neighbour |
 |---|---|---|---|
-| **Движок** | Figma-файл: компоненты `ds-*`, коллекция `decoration` | дизайнер библиотеки | имена компонентов и property |
-| **Скилл** | `SKILL.md` + `references/` | мейнтейнер | ищет движок по имени, читает строки из локалей |
-| **Дистрибуция** | репозиторий, `dist/*.skill`, README | мейнтейнер | версии движка и скилла |
+| **The engine** | a Figma file: `ds-*` components, the `decoration` collection | the library designer | component and property names |
+| **The skill** | `SKILL.md` + `references/` | the maintainer | finds the engine by name, reads strings from locales |
+| **Distribution** | the repository, `dist/*.skill`, README | the maintainer | engine and skill versions |
 
-Ключевое свойство: **скилл не привязан к конкретному файлу**. Он находит движок по точному имени компонента, а не по node-id. Поэтому один и тот же скилл работает в файле-первоисточнике, в чужой копии и в файле, где движок подключён библиотекой.
+The key property: **the skill is not tied to any particular file.** It finds the engine by exact component name, not by node-id. So the same skill works in the source file, in someone's copy, and in a file where the engine is attached as a library.
 
-Из этого следует главное архитектурное ограничение: **имена `ds-*` и имена component property — технический контракт, а не текст для людей.** Они не переводятся, не нормализуются и не чинятся, включая опечатки (`ds-doc/interation`, `Show Desciption#757:0`). Переименование любого узла движка ломает скилл во всех копиях сразу.
+From this follows the main architectural constraint: **`ds-*` names and component property names are a technical contract, not text for humans.** They are never translated, normalised or corrected — typos included (`ds-doc/interation`, `Show Desciption#757:0`). Renaming any engine node breaks the skill in every copy at once.
 
-### Обвязка вынесена в отдельный слой
+### The harness is a separate layer
 
-Правила, карта движка и спеки страниц — чистый Figma Plugin API. Различается только то, **чем** агент выполняет код и снимает изображение. Это живёт в `references/execution.md`: контракт вызова, таблица адаптеров и гейты. В правилах пишется «выполнить» и «снять изображение», конкретные имена (`use_figma`, `get_screenshot`, обязательный `figma-use`) подставляет адаптер.
+The rules, the engine map and the page specs are pure Figma Plugin API. The only thing that differs is **what** the agent executes code with and captures images with. That lives in `references/execution.md`: the call contract, the adapter table and the gates. The rules say «execute» and «capture an image»; the concrete names (`use_figma`, `get_screenshot`, the mandatory `figma-use`) are supplied by the adapter.
 
-Слой уже откатывали 04.08.2026 — тогда второй обвязки не было, и абстракция платила настоящую цену за гипотетическую выгоду. Вернули 05.08.2026 по двум причинам: появилась вторая реальная обвязка (агент внутри Figma, `project/figma-agent/`), и гейты понадобились не как страховка от слабой модели, а как формат отчёта — после отказа от плана и интервью это единственное место, где пользователь видит, что скилл решил за него.
+This layer was once rolled back (2026-08-04) — at the time there was no second harness, and the abstraction paid a real cost for a hypothetical benefit. It returned (2026-08-05) for two reasons: a second real harness appeared (an agent running inside Figma), and the gates turned out to be needed not as insurance against a weak model but as a report format — once the plan and the interview were dropped, gate reports are the only place where the user sees what the skill decided on their behalf.
 
-**Гейтов пять:** G0 Готовность, G1 Вход и инвентарь, G2 Площадка, G3 Страница, G4 Сдача. Гейт — не вопрос: агент перечисляет факты и идёт дальше. Остановка только там, где написано «стоп».
+**There are five gates:** G0 Readiness, G1 Input and inventory, G2 Staging, G3 Page, G4 Handover. A gate is not a question: the agent states facts and moves on. Stops happen only where «stop» is written.
 
-### Автономность как проектное решение
+### Autonomy as a design decision
 
-Версия 3.0 убрала подтверждение плана и интервью целиком. Это размен, и он осознанный.
+Version 3.0 removed plan confirmation and the interview entirely. That is a trade, and a deliberate one.
 
-Что выиграли: скилл годится для потока — задокументировать подряд десятки компонентов за один заход. Раньше каждый компонент стоил пять-шесть раундов вопросов, и на двадцатом человек бросал.
+What was gained: the skill suits batch work — documenting dozens of components in a row in one sitting. Previously every component cost five or six rounds of questions, and by the twentieth a human gave up.
 
-Чем заплатили: часть текста в документации теперь написана скиллом, а не автором компонента. Чтобы это не превратилось в тихую подмену, граница проведена жёстко. **Факты** — варианты, состояния, анатомия, порядок свойств — по-прежнему только из компонента. **Формулировки** генерируются по закрытому набору шаблонов и обязаны быть проверяемым пересказом инвентаря. **Смысл** — когда какую конфигурацию применять, чем стили отличаются по назначению, правила текста, рекомендации — не генерируется никогда, блок остаётся пустым. Всё сгенерированное перечисляется в отчёте списком.
+What it cost: part of the documentation text is now written by the skill, not by the component's author. To keep that from becoming a quiet substitution, the boundary is drawn hard. **Facts** — variants, states, anatomy, property order — still come only from the component. **Wording** is generated from a closed set of templates and must be a verifiable restatement of the inventory. **Meaning** — when to use which configuration, how styles differ in purpose, text rules, recommendations — is never generated; the block stays empty. Everything generated is listed in the report.
 
-Ослабить последние два правила — значит получить документацию, которая выглядит написанной и не является ею. Это хуже пустого блока, потому что пустой блок видно.
+Weakening the last two rules would produce documentation that looks written and is not. That is worse than an empty block, because an empty block is visible.
 
 ---
 
-## 2. Что локализуется, а что нет
+## 2. What is localised and what is not
 
-Разделение проходит по одной линии: **всё, что читает машина, — английское и одно на все языки; всё, что читает человек, — локализуется.**
+The split runs along one line: **everything the machine reads is English and shared by all languages; everything a human reads is localised.**
 
-### Не локализуется никогда
+### Never localised
 
-- Имена компонентов движка: `ds-doc/changelog`, `ds-doc/specification`, `ds-doc/components` (собираются скиллом); `ds-doc/interation`, `ds-doc/tips-practices`, `ds-doc/microcopy` (только вручную); `ds-doc-header`, `ds-paragraph`, `ds-doc-component`, `ds-doc-component-state`, `ds-doc-component-label`, `Name`, `ds-log`, `ds-log-designers`, `ds-log-changelog-version`, `ds-log-changelog-date`, `ds-log-label`.
-- Имена и суффиксы component property: `Title#814:6`, `Show Desciption#757:0`, `Slot Component`, `Type`, `Large`, `Vertical`, `Position`.
-- Имена переменных коллекции `decoration`: `ds-title-description/changelog/title`, `color/ds-primary`, `space/doc/content/*`. Переводятся их **значения**, но не имена.
-- Внутренний текст скилла: пайплайн, правила, рецепты Plugin API, чек-лист. Его читает модель, а не пользователь.
+- Engine component names: `ds-doc/changelog`, `ds-doc/specification`, `ds-doc/components` (built by the skill); `ds-doc/interation`, `ds-doc/tips-practices`, `ds-doc/microcopy` (manual only); `ds-doc-header`, `ds-paragraph`, `ds-doc-component`, `ds-doc-component-state`, `ds-doc-component-label`, `Name`, `ds-log`, `ds-log-designers`, `ds-log-changelog-version`, `ds-log-changelog-date`, `ds-log-label`.
+- Component property names and suffixes: `Title#814:6`, `Show Desciption#757:0`, `Slot Component`, `Type`, `Large`, `Vertical`, `Position`.
+- `decoration` variable names: `ds-title-description/changelog/title`, `color/ds-primary`, `space/doc/content/*`. Their **values** are translated, their names never.
+- The skill's internal text: pipeline, rules, Plugin API recipes, checklist. The model reads it, not the user.
 
-### Локализуется
+### Localised
 
-| Что | Где лежит | Кто переводит |
+| What | Where it lives | Who translates |
 |---|---|---|
-| Заголовки разделов документации (`Changelog`, `Specification`, …) | значения STRING-переменных `ds-title-description/*/title` и `*/description` | дизайнер, в Figma |
-| Страница Information, обложка, описания компонентов движка | Figma-файл | дизайнер, в Figma |
-| Строки, которые скилл **пишет** в документацию | `references/locales/<lang>.md` | мейнтейнер |
-| Шаблоны формулировок, глоссарий заголовков, отчёт | `references/locales/<lang>.md` | мейнтейнер |
-| README | `README.md` (EN) + `README.ru.md` | мейнтейнер |
+| Documentation section headings (`Changelog`, `Specification`, …) | values of the STRING variables `ds-title-description/*/title` and `*/description` | the designer, in Figma |
+| The Information page, the cover, engine component descriptions | the Figma file | the designer, in Figma |
+| Strings the skill **writes** into documentation | `references/locales/<lang>.md` | the maintainer |
+| Wording templates, the heading glossary, the report | `references/locales/<lang>.md` | the maintainer |
+| README | `README.md` (EN) + `README.ru.md` | the maintainer |
 
-Имена фреймов страниц скилл **не берёт из локали** — он читает `Title` шапки этой же страницы и присваивает его фрейму. Значит имена идут за переменными файла автоматически, и дублировать их в локали нельзя: разошлись бы.
-
----
-
-## 3. Один скилл, а не два
-
-Решение: **скилл один на все языки.**
-
-Разница между русской и английской сборкой — три списка строк. Всё остальное совпадает: тот же пайплайн, те же рецепты Plugin API, тот же чек-лист, те же ловушки. Два скилла означали бы дублирование ~100 КБ референсов и правку каждой найденной ловушки дважды. Они разойдутся — это ровно тот дрейф, из-за которого пришлось переделывать первую сборку Chips.
-
-Второй скилл был бы оправдан, только если бы **структура** документации в EN-версии отличалась от RU: другой набор страниц, другие паттерны, другой порядок блоков. Она не отличается и отличаться не должна — иначе теряется смысл общего движка.
-
-### Язык самого скилла
-
-`SKILL.md` и `references/*` — **на английском**. Причины:
-
-1. Этот текст читает модель, а не пользователь. Термины Plugin API (`detachInstance`, `layoutSizingHorizontal`, `setBoundVariable`) всё равно английские — смешанный текст добавляет шум на каждой строке.
-2. Репозиторий открывается для внешних контрибьюторов, а скилл — его основной артефакт.
-3. Всё, что видит пользователь, приходит из локалей, поэтому язык инструкций на пользователя не влияет.
-
-Русская версия `SKILL.md` не поддерживается: два параллельных текста инструкций разойдутся быстрее, чем два скилла.
-
-### `description` — двуязычный
-
-Триггеры срабатывания перечисляются на обоих языках в одном поле: «собери документацию», «задокументируй компонент», «оформи по шаблону документации» и `document this component in Figma`, `build component docs`, `generate ds-doc section`. Иначе скилл не поднимется по английскому запросу.
+Page frame names the skill **never takes from the locale** — it reads the header `Title` of that same page and assigns it to the frame. Names therefore follow the file's variables automatically; duplicating them in the locale is forbidden: they would drift apart.
 
 ---
 
-## 4. Как выбирается язык
+## 3. One skill, not two
 
-**Правило: язык документации = язык, на котором пользователь сформулировал запрос.** Написали по-русски — собирается русская документация, сгенерированные тексты и отчёт по-русски. Написали по-английски — всё английское.
+The decision: **one skill for all languages.**
 
-Никаких дополнительных вопросов на шаге 3 это не добавляет.
+The difference between a Russian and an English build is three lists of strings. Everything else matches: the same pipeline, the same Plugin API recipes, the same checklist, the same traps. Two skills would mean duplicating ~100 KB of references and fixing every discovered trap twice. They would drift — exactly the drift that forced the first Chips build to be redone.
 
-### Предохранитель
+A second skill would be justified only if the **structure** of the documentation differed between the EN and RU versions: a different page set, different patterns, a different block order. It does not differ and must not — otherwise the shared engine loses its point.
 
-У правила есть один сценарий отказа: русскоязычный дизайнер собирает документацию в англоязычном файле (или наоборот). Тогда заголовки разделов придут из переменных файла на одном языке, а содержание блоков скилл напишет на другом.
+### The language of the skill itself
 
-Поэтому на гейте G2, когда движок уже разрешён, скилл читает значение `ds-title-description/specification/title` и сравнивает с выбранным языком. Расхождение — **не ошибка и не остановка**: скилл добавляет в отчёт гейта строку
+`SKILL.md` and `references/*` are **in English**. Reasons:
+
+1. The model reads this text, not the user. Plugin API terms (`detachInstance`, `layoutSizingHorizontal`, `setBoundVariable`) are English anyway — mixed text adds noise on every line.
+2. The repository is open to outside contributors, and the skill is its main artefact.
+3. Everything the user sees comes from the locales, so the instruction language does not affect the user.
+
+A Russian `SKILL.md` is not maintained: two parallel instruction texts would drift apart faster than two skills.
+
+### A bilingual `description`
+
+Trigger phrases are listed in both languages in the one field: «собери документацию», «задокументируй компонент», «оформи по шаблону документации» alongside `document this component in Figma`, `build component docs`, `generate ds-doc section`. Otherwise the skill would not fire on an English request.
+
+---
+
+## 4. How the language is chosen
+
+**The rule: documentation language = the language the user phrased the request in.** Written in Russian — the documentation, generated texts and report are Russian. Written in English — everything is English.
+
+This adds no extra questions anywhere.
+
+### The safeguard
+
+The rule has one failure scenario: a Russian-speaking designer building documentation in an English file (or vice versa). Section headings then arrive from the file's variables in one language, while the skill writes block content in the other.
+
+So at gate G2, once the engine is resolved, the skill reads the value of `ds-title-description/specification/title` and compares it with the chosen language. A mismatch is **not an error and not a stop**: the skill adds a line to the gate report
 
 ```
-Язык:  русский (в файле заголовки на английском — заголовки страниц останутся английскими)
+Language:  English (the file's headings are Russian — page headings will stay Russian)
 ```
 
-и продолжает. Перебить можно одной фразой в любой момент. Останавливать сборку из-за этого нельзя: файл могут вести сознательно смешанным.
+and continues. It can be overridden with a single phrase at any moment. Stopping the build over this is forbidden: a file may be deliberately kept mixed.
 
-### Что не выбрано и почему
+### What was not chosen, and why
 
-Вариант с переменной-маркером `ds-doc/locale` в коллекции `decoration` обсуждался и отклонён: он требует, чтобы каждый, кто копирует файл, знал про эту переменную и не забыл её поправить. Забытый маркер хуже отсутствующего — он врёт уверенно. К нему можно вернуться, если сценарий «смешанный язык» окажется частым.
+A marker variable `ds-doc/locale` in the `decoration` collection was discussed and rejected: it requires everyone who copies the file to know about the variable and remember to update it. A forgotten marker is worse than no marker — it lies with confidence. It can be revisited if the mixed-language scenario turns out to be common.
 
 ---
 
-## 5. Контракт локалей
+## 5. The locale contract
 
 ```
 references/
@@ -124,69 +122,69 @@ references/
     └── en.md
 ```
 
-Один файл на язык, плоский, без вложенности. Скилл читает **ровно один** из них — тот, что соответствует выбранному языку. Чтения обоих быть не должно: это лишний контекст на каждую сборку.
+One flat file per language, no nesting. The skill reads **exactly one** of them — the one matching the chosen language. Reading both must never happen: it is wasted context on every build.
 
-Структура файла — четыре раздела:
+The file structure — four sections:
 
 ### `## formats`
 
-Всё, что зависит от языка, но не является фразой.
+Everything language-dependent that is not a phrase.
 
-| Ключ | `ru` | `en` |
+| Key | `ru` | `en` |
 |---|---|---|
-| `date` | `01.08.26` | то же: формат диктует компонент `ds-log-changelog-date` — три текстовых слота через точку, локаль его не переопределяет. Этим закрыт открытый вопрос о формате даты в `en` |
+| `date` | `01.08.26` | the same: the format is dictated by the `ds-log-changelog-date` component — three text slots joined with dots; the locale does not override it. This closed the open question about the `en` date format |
 | `quotes` | `«…»` | `“…”` |
-| `dash` | `—` с пробелами | `—` без пробелов |
+| `dash` | `—` with spaces | `—` without spaces |
 
 ### `## glossary`
 
-Соответствие «имя свойства → заголовок блока»: `Configuration` → Конфигурации / Configurations, `Style` → Стили / Styles, `Size` → Размеры / Sizes, `State` → Состояния / States. Имя, которого нет в глоссарии, переносится дословно — это не пробел в переводе, а правило.
+The «property name → block heading» mapping: `Configuration` → Конфигурации / Configurations, `Style` → Стили / Styles, `Size` → Размеры / Sizes, `State` → Состояния / States. A name absent from the glossary transfers verbatim — that is a rule, not a translation gap.
 
-Порядок блоков задаёт **компонент**, а не глоссарий: блоки спецификации идут в порядке `componentPropertyDefinitions`. Глоссарий отвечает только за то, как назвать.
+Block order is set by **the component**, not the glossary: specification blocks follow `componentPropertyDefinitions` order. The glossary is responsible only for what to call things.
 
 ### `## write`
 
-Строки и шаблоны, которые уходят прямо в Figma. Это единственное место, где скилл имеет право писать текст, не взятый из компонента: `anatomy.title` и `anatomy.description`, шаблон лида, шаблон описания блока свойства, шаблон первой записи changelog. Шаблон — строка с подстановками, а не пример: перефразировать его в пайплайне нельзя, иначе локаль перестаёт управлять текстом.
+Strings and templates that go straight into Figma. This is the only place where the skill may write text not taken from the component: `anatomy.title` and `anatomy.description`, the lead template, the property-block description template, the first changelog entry template. A template is a string with substitutions, not an example: paraphrasing it in the pipeline is forbidden, otherwise the locale stops governing the text.
 
-Закрытый список того, что не генерируется ни на одном языке (назначение конфигураций, разница стилей по смыслу, правила текста, рекомендации), живёт в `SKILL.md`, а не в локали: это правило, а не текст.
+The closed list of what is never generated in any language (configuration purposes, style differences in meaning, text rules, recommendations) lives in `SKILL.md`, not in the locale: it is a rule, not text.
 
-Если строки нет ни в компоненте, ни в шаблоне — блок остаётся пустым и уходит в отчёт пробелом. Локаль не место для заглушек.
+If a string exists neither in the component nor in a template — the block stays empty and goes into the report as a gap. A locale is no place for placeholders.
 
 ### `## report`
 
-Подписи гейт-отчётов и итогового отчёта (G4): «Компонент», «Страницы», «Сгенерировано скиллом», «Опечатки исходника», «Осталось незаполненным».
+Labels for gate reports and the final report (G4): «Component», «Pages», «Generated by the skill», «Source typos», «Left unfilled».
 
-### Правило добавления языка
+### The rule for adding a language
 
-Новый язык = один новый файл в `locales/` + строка в `description` скилла + перевод значений переменных в копии Figma-файла. Ни строчки в пайплайне. Если для нового языка пришлось править `SKILL.md` — значит контракт локалей протёк и его надо чинить, а не обходить.
-
----
-
-## 6. Два Figma-файла
-
-| Файл | Язык | Что отличается от соседа |
-|---|---|---|
-| Component Spec Kit | `en` | — публикуется первым |
-| Component Spec Kit | `ru` | значения `ds-doc/*/title`, `*/description`; страница Information; обложка; описания компонентов |
-
-Всё остальное — структура, имена узлов, набор компонентов, состав коллекции `decoration`, числовые значения токенов — **обязано совпадать**. EN-файл делается как Duplicate RU-файла, а не собирается заново: русский файл остаётся структурным первоисточником, даже несмотря на то, что английский выходит наружу раньше. Любое структурное изменение вносится в RU и переносится в EN отдельным шагом; расхождение структуры между файлами — баг.
-
-**Оба файла называются одинаково — `Component Spec Kit`.** Имя файла здесь не подпись, а строка, по которой скилл ищет подключённую библиотеку (шаг 0.2), поэтому разводить их именами нельзя: русская копия перестала бы находиться по умолчанию. Различать версии в Community нужно заголовком и описанием публикации, а не именем файла.
-
-Почему не один файл с языковыми модами: моды переключили бы только шапки. Содержание документации — авторский текст внутри секции, оно модами не переключается. Пришлось бы держать по две секции на каждый компонент в одном файле, и файл раздувался бы вдвое быстрее.
+A new language = one new file in `locales/` + a line in the skill's `description` + translated variable values in a copy of the Figma file. Not a line in the pipeline. If adding a language required editing `SKILL.md` — the locale contract has leaked and must be fixed, not worked around.
 
 ---
 
-## 7. Версионирование
+## 6. Two Figma files
 
-Три независимых счётчика, и их нельзя путать.
-
-| Что | Где считается | Как растёт |
+| File | Language | What differs from its sibling |
 |---|---|---|
-| **Версия компонента** | запись `ds-log` на странице «История изменений» | `New` → major+1, `Changed` → minor+1, `Fixed` → patch+1. Считает скилл, не спрашивает |
-| **Версия скилла** | `CHANGELOG.md` репозитория | SemVer. Major — когда меняется контракт с движком или с локалями |
-| **Версия движка** | `CHANGELOG.md`, раздел «Движок» | растёт, когда меняется состав `ds-*`, их property или структура паттернов |
+| Component Spec Kit | `en` | — ships first |
+| Component Spec Kit | `ru` | values of `ds-title-description/*/title` and `*/description`; the Information page; the cover; component descriptions |
 
-**Правило совместимости:** major-версия скилла заявляет, с какой major-версией движка он работает. Проверка уже встроена в шаг 0 и шаг 5 — если ожидаемого компонента нет, скилл останавливается и возвращает три списка: что ожидалось, что найдено, чего не хватает. Это и есть проверка совместимости; отдельного механизма не нужно.
+Everything else — structure, node names, the component set, the composition of the `decoration` collection, numeric token values — **must match**. The EN file is made as a Duplicate of the RU file, never rebuilt from scratch: the Russian file remains the structural source of truth even though the English one ships first. Any structural change is made in RU and carried into EN as a separate step; a structural divergence between the files is a bug.
 
-Опционально — переменная `ds-system/version` в `decoration`, чтобы скилл называл версию движка в отчёте. Не блокирующее решение, отложено.
+**Both files are named identically — `Component Spec Kit`.** The file name here is not a caption but part of what a user sees when attaching the engine, so the versions must not be told apart by name: the Russian copy would stop being found by default. Distinguish the versions in Community by the publication title and description, not the file name.
+
+Why not one file with language modes: modes would switch only the headers. Documentation content is authored text inside a section — modes do not switch it. The file would need two sections per component and would bloat twice as fast.
+
+---
+
+## 7. Versioning
+
+Three independent counters, never to be confused.
+
+| What | Where it counts | How it grows |
+|---|---|---|
+| **Component version** | the `ds-log` entry on the Changelog page | `New` → major+1, `Changed` → minor+1, `Fixed` → patch+1. The skill computes it, never asks |
+| **Skill version** | the repository `CHANGELOG.md` | SemVer. Major — when the contract with the engine or with the locales changes |
+| **Engine version** | `CHANGELOG.md`, the «Engine» section | grows when the `ds-*` roster, their properties or the pattern structure changes |
+
+**The compatibility rule:** the skill's major version declares which engine major version it works with. The check is already built into the pipeline — if an expected component is missing, the skill stops and returns three lists: expected, found, missing. That is the compatibility check; no separate mechanism is needed.
+
+Optional — a `ds-system/version` variable in `decoration`, so the skill can name the engine version in its report. Not a blocking decision; deferred.
