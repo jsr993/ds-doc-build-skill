@@ -1,7 +1,12 @@
 # Пересобирает dist\ из SKILL.md и references\.
-# Кладёт два файла с одинаковым содержимым:
-#   ds-doc-build.skill          — постоянное имя, всегда текущая версия (на него ссылается README)
-#   ds-doc-build-<версия>.skill — версия в имени, чтобы новая и старая сборки различались на глаз
+# Кладёт четыре файла — два формата × два имени:
+#   ds-doc-build.skill / ds-doc-build-<версия>.skill
+#       плоский архив: SKILL.md и references\ в корне.
+#       Для ручной установки — распаковывается ВНУТРЬ папки ~/.claude/skills/ds-doc-build/
+#   ds-doc-build.zip / ds-doc-build-<версия>.zip
+#       то же содержимое, обёрнутое в папку ds-doc-build\.
+#       Для загрузчиков и распаковки «куда попало»: папка приезжает вместе с архивом
+# Имя без версии — постоянный адрес для README, с версией — чтобы сборку было видно на глаз.
 $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $PSScriptRoot
@@ -15,17 +20,34 @@ $version = (Select-String -Path (Join-Path $root "CHANGELOG.md") -Pattern '^### 
             Select-Object -First 1).Matches[0].Groups[1].Value
 if (-not $version) { throw "не удалось прочитать версию из CHANGELOG.md" }
 
-$latest = Join-Path $root "dist\ds-doc-build.skill"
-$tagged = Join-Path $root "dist\ds-doc-build-$version.skill"
+$dist = Join-Path $root "dist"
+New-Item -ItemType Directory -Force -Path $dist | Out-Null
 
-New-Item -ItemType Directory -Force -Path (Join-Path $root "dist") | Out-Null
-foreach ($f in @($latest, $tagged)) { if (Test-Path $f) { Remove-Item $f } }
+$out = @{
+  flatLatest   = Join-Path $dist "ds-doc-build.skill"
+  flatTagged   = Join-Path $dist "ds-doc-build-$version.skill"
+  foldedLatest = Join-Path $dist "ds-doc-build.zip"
+  foldedTagged = Join-Path $dist "ds-doc-build-$version.zip"
+}
+foreach ($f in $out.Values) { if (Test-Path $f) { Remove-Item $f } }
 
-$tmp = Join-Path $env:TEMP ("ds-doc-build-" + [guid]::NewGuid().ToString("N") + ".zip")
+# плоский: SKILL.md и references в корне архива
+$tmp = Join-Path $env:TEMP ("dsdb-flat-" + [guid]::NewGuid().ToString("N") + ".zip")
 Compress-Archive -Path (Join-Path $root "SKILL.md"), (Join-Path $root "references") -DestinationPath $tmp
-Move-Item $tmp $latest
-Copy-Item $latest $tagged
+Move-Item $tmp $out.flatLatest
+Copy-Item $out.flatLatest $out.flatTagged
+
+# обёрнутый: всё внутри папки ds-doc-build\
+$stageRoot = Join-Path $env:TEMP ("dsdb-stage-" + [guid]::NewGuid().ToString("N"))
+$stage = Join-Path $stageRoot "ds-doc-build"
+New-Item -ItemType Directory -Force -Path $stage | Out-Null
+Copy-Item (Join-Path $root "SKILL.md") $stage
+Copy-Item (Join-Path $root "references") $stage -Recurse
+$tmp2 = Join-Path $env:TEMP ("dsdb-folded-" + [guid]::NewGuid().ToString("N") + ".zip")
+Compress-Archive -Path $stage -DestinationPath $tmp2
+Move-Item $tmp2 $out.foldedLatest
+Copy-Item $out.foldedLatest $out.foldedTagged
+Remove-Item $stageRoot -Recurse
 
 Write-Host "версия $version"
-Write-Host "  $latest"
-Write-Host "  $tagged"
+foreach ($k in 'flatLatest','flatTagged','foldedLatest','foldedTagged') { Write-Host ("  " + $out[$k]) }

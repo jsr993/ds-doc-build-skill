@@ -84,7 +84,14 @@ The skill checks the library as step zero and recognises it **by the `decoration
 
 ### Installing the skill
 
-1. Download [`dist/ds-doc-build.skill`](dist/ds-doc-build.skill) — an ordinary zip archive, always the current version. Next to it sits the same build under a versioned name (`ds-doc-build-4.0.0.skill`) so you can tell at a glance which build you have on disk.
+1. Download the archive. `dist/` holds the same build in two shapes — pick by how you install:
+
+   | File | Inside | Use when |
+   |---|---|---|
+   | [`ds-doc-build.skill`](dist/ds-doc-build.skill) | `SKILL.md` + `references/` at the root | unpacking by hand **into** `~/.claude/skills/ds-doc-build/` |
+   | [`ds-doc-build.zip`](dist/ds-doc-build.zip) | everything wrapped in a `ds-doc-build/` folder | uploading to a skill form, or unpacking anywhere — the folder comes with the archive |
+
+   Each also exists under a versioned name (`ds-doc-build-4.0.0.skill`, `ds-doc-build-4.0.0.zip`) so a build on disk identifies itself without being opened. The unversioned names are permanent addresses and always carry the current version.
 2. **Delete the old folder first** — never unpack over it. The reference set changes between generations, and a leftover file makes the new `SKILL.md` read the folder as stale:
 
    ```bash
@@ -205,8 +212,10 @@ A section in Figma and a report: a link to the section, the three pages, block a
 │       ├── en.md
 │       └── ru.md
 ├── dist/
-│   ├── ds-doc-build.skill        # current build, permanent name
-│   └── ds-doc-build-4.0.0.skill  # same build, version in the name
+│   ├── ds-doc-build.skill        # flat: SKILL.md at the archive root
+│   ├── ds-doc-build-4.0.0.skill  # same, version in the name
+│   ├── ds-doc-build.zip          # wrapped in a ds-doc-build/ folder
+│   └── ds-doc-build-4.0.0.zip    # same, version in the name
 ├── scripts/
 │   ├── pack.sh                   # rebuild the archive (macOS / Linux)
 │   └── pack.ps1                  # rebuild the archive (Windows)
