@@ -40,7 +40,7 @@ A gate is not a question to the user. State the facts and move on. Stops happen 
 
 | Gate | Report before moving on |
 |---|---|
-| **G0 Readiness** | list the files read by name; say how the library was found and how the engine will be resolved |
+| **G0 Readiness** | list the files read by name and the skill version; on any gap, add the install diagnosis (stale markers, verdict); say how the library was found and how the engine will be resolved |
 | **G1 Input and inventory** | type and name of the node received; variant count, axes with values, property order verbatim; where the lead comes from (`description` or generation) |
 | **G2 Staging** | section id, list of resolved `ds-*`, fonts loaded |
 | **G3 Page** | before: which page, from which pattern. After: what the snapshot shows, any overflows. Three times — changelog, specification, components |

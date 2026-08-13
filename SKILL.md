@@ -13,6 +13,8 @@ Input — a link to a product component. Output — a SECTION of three pages ass
 
 ## Required context
 
+**Version 3.2.** `SKILL.md` and `references/` ship as one archive and are versioned together — a folder from another generation is a broken install, not a variant.
+
 | File | When to read |
 |---|---|
 | `references/ds-engine-map.md` | before the first action — every `ds-*`, node-ids, keys, properties |
@@ -53,7 +55,20 @@ A gate is a point where the agent states facts before acting. Format — in `exe
 
 ### G0. Readiness
 
-**Completeness.** Read the six files from the table (the locale file counts once the language is known). If any cannot be read — name it and finish. Do not reconstruct content by reading the Figma file and do not work «from memory»: without the engine map the result differs from run to run and the user will not notice. The cause is almost always a skill unpacked without its `references/` folder.
+**Completeness.** Read the six files from the table (the locale file counts once the language is known). If any cannot be read — name it, diagnose the install, and finish. Do not reconstruct content by reading the Figma file and do not work «from memory»: without the engine map the result differs from run to run and the user will not notice.
+
+**Diagnose before blaming the unpack.** List what `references/` actually holds and read the extras — a stale folder names its own generation:
+
+| What you see | What it means |
+|---|---|
+| `interview.md` or `designers.md` present | the folder predates 3.0, where the interview was removed |
+| `execution.md` missing | the same: the folder predates 3.0 |
+| `locales/` missing | the folder predates 3.1 |
+| a table file missing, none of the markers above | an incomplete unpack |
+
+The stop message states: the version from `SKILL.md`, the files found, the files missing, the stale markers, and the verdict — **«reinstall the whole folder from `dist/ds-doc-build.skill`, do not unpack over the old one»** when markers are present, **«add the missing file»** when they are not. Unpacking over an old folder is what produces this state: a new `SKILL.md` on top of an old `references/`.
+
+**Never edit the required-context table to fit a broken folder.** Dropping `execution.md` from it and restoring `interview.md`/`designers.md` makes the error disappear and silently rolls the skill back a generation — the pipeline would then reference steps that no longer exist.
 
 **Library.** `figma.teamLibrary.getAvailableLibraryVariableCollectionsAsync()`:
 

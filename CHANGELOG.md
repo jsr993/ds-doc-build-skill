@@ -14,6 +14,20 @@
 
 ## Скилл
 
+### 3.2.0 — 12.08.2026
+
+G0 now diagnoses a version desync instead of merely reporting a missing file.
+
+#### Added
+
+- **A version marker** in `SKILL.md`: the pipeline and `references/` ship as one archive and are versioned together.
+- **An install diagnosis table** at G0. A stale folder names its own generation: `interview.md` or `designers.md` present, or `execution.md` missing → the folder predates 3.0; no `locales/` → predates 3.1. The stop message now ends with a verdict — reinstall the whole folder, or add the one missing file — instead of leaving the user to guess.
+- An explicit prohibition on editing the required-context table to fit a broken folder. Found in the field: an agent facing a missing `execution.md` proposed dropping it from the table and restoring `interview.md`/`designers.md` — a change that makes the error disappear and silently rolls the skill back a generation.
+
+#### Why
+
+A run in another environment hit a hybrid install: `SKILL.md` from 3.0, `references/` from the 2.0 rollback that preceded it. G0 stopped correctly, but the report could not tell an incomplete unpack from a version desync — and the two need opposite fixes.
+
 ### 3.1.0 — 12.08.2026
 
 The skill now speaks English; generated documentation follows the language of the request. Entries from here on are written in English — the repository's public language.
