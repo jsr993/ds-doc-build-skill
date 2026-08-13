@@ -13,18 +13,33 @@ Input — a link to a product component. Output — a SECTION of three pages ass
 
 ## Required context
 
-**Version 3.2.** `SKILL.md` and `references/` ship as one archive and are versioned together — a folder from another generation is a broken install, not a variant.
+**Version 4.0.** `SKILL.md` and `references/` ship as one archive and are versioned together — a folder from another generation is a broken install, not a variant.
 
 | File | When to read |
 |---|---|
 | `references/ds-engine-map.md` | before the first action — every `ds-*`, node-ids, keys, properties |
 | `references/build-recipes.md` | before the first action — Plugin API snippets |
-| `references/execution.md` | before the first action — call contract and gates |
 | `references/annotations.md` | before building Specification |
 | `references/locales/<lang>.md` | after the language is determined — exactly one file |
 | `references/contract-template.md` | only when explicitly asked to export markdown |
 
-The skill is not tied to a model or a harness; tool names live only in the `execution.md` adapter.
+## How to run it
+
+The skill needs three capabilities: execute JS in the Figma file, capture an image of a node, and write access. Any one missing — stop and say which.
+
+| Harness | Execute | Capture |
+|---|---|---|
+| Claude Code + Figma MCP | `use_figma`, with `figma-use` in `skillNames` — mandatory before **every** call | `get_screenshot` |
+| Any model with Figma MCP | the MCP tool that runs JS | the MCP tool returning a node image |
+| An agent inside Figma | Plugin API directly | by its own means |
+
+Call contract:
+
+- one call — one logical step; a page is never built whole in one call;
+- `return` instead of `console.log`: only the returned value is visible;
+- `setCurrentPageAsync` — exactly once per call, and pages do not load without it;
+- return the IDs of every node created or mutated;
+- a failed call is never blindly retried: read the error, fix, retry. A failed script does not execute partially.
 
 ## Language
 
@@ -34,7 +49,7 @@ Safeguard: after the engine is resolved, read the value of the specification hea
 
 ## Inviolable rules
 
-1. **The library is mandatory.** The engine is recognised by its `decoration` variable collection — in an attached library (named «Component Spec Kit» by default) or locally in the file. Neither present → stop and ask to attach it (G0). It cannot be attached from code.
+1. **The library is mandatory.** The engine is recognised by its `decoration` variable collection — in an attached library (named «Component Spec Kit» by default) or locally in the file. Neither present → stop and ask to attach it (step 0). It cannot be attached from code.
 2. **Input is the component itself.** `COMPONENT_SET` or `COMPONENT`. An instance, frame, section or group → stop.
 3. **Never touch the source component.** Properties, layers, name, description — read only. The single exception is moving the set itself into `Slot Component` (6.3), and it is the only question in the whole build: **stop** before the move; without explicit permission do not move it.
 4. **Never touch the header.** `Title` is the section name, `Description` its subtitle; both are bound to `ds-title-description/<pattern>/*` variables. Never put the component name there. Any `setProps` on them severs the variable binding.
@@ -48,27 +63,27 @@ Safeguard: after the engine is resolved, read the value of the specification hea
 ## Pipeline
 
 ```
-G0 Readiness → G1 Input and inventory → G2 Staging → G3 Three pages → G4 Handover
+0 Readiness → 1 Input and inventory → 2 Staging → 3 Three pages → 4 Handover
 ```
 
-A gate is a point where the agent states facts before acting. Format — in `execution.md`. Gate not closed — no writing. No gate waits for a user reply except where «stop» is written.
+Each step reports its facts before acting — what was read, what was found, what is about to be written. A report is not a question: state the facts and continue. Stops happen only where «stop» is written, and nothing is written to the file before step 2 closes.
 
-### G0. Readiness
+### 0. Readiness
 
-**Completeness.** Read the six files from the table (the locale file counts once the language is known). If any cannot be read — name it, diagnose the install, and finish. Do not reconstruct content by reading the Figma file and do not work «from memory»: without the engine map the result differs from run to run and the user will not notice.
+**Completeness.** Read the five files from the table (the locale counts once the language is known). If any cannot be read — name it, diagnose the install, and finish. Do not reconstruct content by reading the Figma file and do not work «from memory»: without the engine map the keys and node-ids have nowhere to come from, the result differs from run to run, and the finished section in Figma looks the same either way.
 
-**Diagnose before blaming the unpack.** List what `references/` actually holds and read the extras — a stale folder names its own generation:
+**Diagnose before blaming the unpack.** List what `references/` actually holds — a stale folder names its own generation:
 
 | What you see | What it means |
 |---|---|
-| `interview.md` or `designers.md` present | the folder predates 3.0, where the interview was removed |
-| `execution.md` missing | the same: the folder predates 3.0 |
+| `interview.md` or `designers.md` present | the folder predates 3.0 |
+| `execution.md` present | the folder predates 4.0, where it was folded into `SKILL.md` |
 | `locales/` missing | the folder predates 3.1 |
-| a table file missing, none of the markers above | an incomplete unpack |
+| no `references/` at all, or a table file missing with none of the markers above | an incomplete unpack |
 
-The stop message states: the version from `SKILL.md`, the files found, the files missing, the stale markers, and the verdict — **«reinstall the whole folder from `dist/ds-doc-build.skill`, do not unpack over the old one»** when markers are present, **«add the missing file»** when they are not. Unpacking over an old folder is what produces this state: a new `SKILL.md` on top of an old `references/`.
+The stop message states: the version from `SKILL.md`, the files found, the files missing, the stale markers, and the verdict — **«reinstall the whole folder from `dist/ds-doc-build.skill`, do not unpack over the old one»** when markers are present, **«add the missing files»** when they are not.
 
-**Never edit the required-context table to fit a broken folder.** Dropping `execution.md` from it and restoring `interview.md`/`designers.md` makes the error disappear and silently rolls the skill back a generation — the pipeline would then reference steps that no longer exist.
+**Never edit the required-context table to fit a broken folder.** Making the error disappear that way silently rolls the skill back a generation: the pipeline then references steps that no longer exist.
 
 **Library.** `figma.teamLibrary.getAvailableLibraryVariableCollectionsAsync()`:
 
@@ -83,7 +98,7 @@ The engine is recognised **by the `decoration` collection, not by library name**
 
 A library cannot be attached from code — only a human through the UI. So the check ends with a request, not an attempted fix.
 
-### G1. Input and inventory
+### 1. Input and inventory
 
 `fileKey` and `node-id` from the URL (hyphen between numbers → colon). No `node-id` — ask for it.
 
@@ -102,9 +117,9 @@ Stop = create nothing, do not descend into the node, do not guess. Name the type
 
 **Names verbatim, typos included.** Search and verification run on names; a mismatch is worse than a typo. List noticed typos in the report as a separate item — a find for the owner, not a reason to edit the documentation text.
 
-The gate closes with a list: name, variant count, axes with values, properties in declaration order, what the lead will be built from.
+Report before moving on: name, variant count, axes with values, properties in declaration order, where the lead comes from.
 
-### G2. Staging (recipes 2, 2a)
+### 2. Staging (recipes 2, 2a)
 
 Engine resolution: by key for a library (`importComponentByKeyAsync` / `importComponentSetByKeyAsync`), by name over pages for a local copy. **Components of an attached library cannot be found by name** — the Plugin API does not enumerate them; only key import works.
 
@@ -129,7 +144,7 @@ Colours and radius — **only `setBoundVariable` and `setBoundVariableForPaint`*
 
 Layout: 100 padding from the section edge on all sides, pages left to right with a 200 step.
 
-### G3. Three pages — one per call
+### 3. Three pages — one per call
 
 Pattern instance → `detachInstance()` → fill `Content`. Detach is mandatory: patterns have no public properties and the number of blocks is unknown in advance. After detach `Header` remains a `ds-doc-header` instance — do not touch it.
 
@@ -197,7 +212,7 @@ The columns axis is the first **VARIANT axis** in property declaration order (ot
 
 **The move needs permission.** The set itself is the only thing the skill touches outside its own section: its parent and position in the file change. So before building this page — **stop**: name the component and ask permission to move it inside the section. Refused — build the page without `Slot Component`: the `Name` block and axis labels in place, the slot empty, the reason in the report.
 
-### G4. Handover
+### 4. Handover
 
 **Fit the section last**, when all heights are final: size = content bounds plus 100 on each side, via `resizeWithoutConstraints`. `SECTION` has no auto-layout and never hugs by itself.
 

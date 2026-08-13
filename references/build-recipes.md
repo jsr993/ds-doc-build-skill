@@ -1,6 +1,6 @@
 # Plugin API recipes
 
-The code below is pure Plugin API, identical for any harness. What executes it and the call contract — in `execution.md`.
+The code below is pure Plugin API, identical for any harness. What executes it and the call contract — in `SKILL.md`, section «How to run it».
 
 ---
 

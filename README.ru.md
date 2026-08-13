@@ -100,7 +100,6 @@
    └── references/
        ├── ds-engine-map.md
        ├── build-recipes.md
-       ├── execution.md
        ├── annotations.md
        ├── contract-template.md
        └── locales/
@@ -194,7 +193,6 @@ https://www.figma.com/design/<fileKey>/<file>?node-id=3014-2258
 ├── references/
 │   ├── ds-engine-map.md          # карта движка: имена, node-id, keys, property
 │   ├── build-recipes.md          # сниппеты Figma Plugin API
-│   ├── execution.md              # контракт вызова, адаптеры обвязок, гейты
 │   ├── annotations.md            # аннотации и линейки
 │   ├── contract-template.md      # шаблон markdown-контракта
 │   └── locales/                  # строки, которые скилл пишет в документацию

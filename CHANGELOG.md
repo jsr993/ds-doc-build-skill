@@ -14,6 +14,24 @@
 
 ## Скилл
 
+### 4.0.0 — 12.08.2026
+
+Major: the reference set changed. Gate ceremony cut, `execution.md` folded into `SKILL.md`.
+
+#### Removed
+
+- **`references/execution.md`** — its content lives in `SKILL.md` under «How to run it»: the capability requirements, the adapter table and the call contract, all intact. It was the smallest reference and the one most often missing from a partial install; twice in one week a run stopped because it alone had not arrived. Four references remain plus the locale.
+- **The gate ceremony.** Five named gates with a closing protocol proved a heavier frame than the thing it framed. The steps stay numbered 0–4 as a pipeline.
+
+#### Changed
+
+- What the gates protected became plain rules: every step reports its facts before acting, nothing is written before step 2 closes, doubt is a stop.
+- The install-diagnosis marker table updated for the new shape: `execution.md` **present** now means the folder predates 4.0; a missing `references/` altogether is called out explicitly.
+
+#### Kept deliberately
+
+- **The completeness check.** It is the only thing between a partial install and a build that invents engine keys and node-ids — a failure invisible in the finished Figma section. Cutting it along with the ceremony would have removed the protection while leaving the cause.
+
 ### 3.2.0 — 12.08.2026
 
 G0 now diagnoses a version desync instead of merely reporting a missing file.

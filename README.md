@@ -100,7 +100,6 @@ The skill checks the library as step zero and recognises it **by the `decoration
    └── references/
        ├── ds-engine-map.md
        ├── build-recipes.md
-       ├── execution.md
        ├── annotations.md
        ├── contract-template.md
        └── locales/
@@ -194,7 +193,6 @@ A section in Figma and a report: a link to the section, the three pages, block a
 ├── references/
 │   ├── ds-engine-map.md          # engine map: names, node-ids, keys, properties
 │   ├── build-recipes.md          # Figma Plugin API snippets
-│   ├── execution.md              # call contract, harness adapters, gates
 │   ├── annotations.md            # annotations and measurements
 │   ├── contract-template.md      # markdown contract template
 │   └── locales/                  # the strings the skill writes into documentation

@@ -20,13 +20,15 @@ The key property: **the skill is not tied to any particular file.** It finds the
 
 From this follows the main architectural constraint: **`ds-*` names and component property names are a technical contract, not text for humans.** They are never translated, normalised or corrected — typos included (`ds-doc/interation`, `Show Desciption#757:0`). Renaming any engine node breaks the skill in every copy at once.
 
-### The harness is a separate layer
+### The harness lives in `SKILL.md`
 
-The rules, the engine map and the page specs are pure Figma Plugin API. The only thing that differs is **what** the agent executes code with and captures images with. That lives in `references/execution.md`: the call contract, the adapter table and the gates. The rules say «execute» and «capture an image»; the concrete names (`use_figma`, `get_screenshot`, the mandatory `figma-use`) are supplied by the adapter.
+The rules, the engine map and the page specs are pure Figma Plugin API. The only thing that differs is **what** the agent executes code with and captures images with — an adapter table plus the call contract, both in `SKILL.md` under «How to run it».
 
-This layer was once rolled back (2026-08-04) — at the time there was no second harness, and the abstraction paid a real cost for a hypothetical benefit. It returned (2026-08-05) for two reasons: a second real harness appeared (an agent running inside Figma), and the gates turned out to be needed not as insurance against a weak model but as a report format — once the plan and the interview were dropped, gate reports are the only place where the user sees what the skill decided on their behalf.
+That material spent three versions as a separate `references/execution.md` and moved back in 4.0. Two reasons, and neither is about the content, which survived intact. The file was the smallest of the references and the one most often missing from a partial install — twice in one week a run stopped because it alone had not arrived. And the gate ceremony it carried was cut in the same version: five named gates with a closing protocol turned out to be a heavier frame than the thing it framed.
 
-**There are five gates:** G0 Readiness, G1 Input and inventory, G2 Staging, G3 Page, G4 Handover. A gate is not a question: the agent states facts and moves on. Stops happen only where «stop» is written.
+**What the gates protected is kept as plain rules:** each step reports its facts before acting, nothing is written before the staging step closes, and doubt is a stop. The numbered steps 0–4 remain — as a pipeline, not a ceremony.
+
+The completeness check is not part of that cut and never should be. It is the only thing standing between a partial install and a build that invents engine keys — a failure invisible in the finished Figma section.
 
 ### Autonomy as a design decision
 
