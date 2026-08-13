@@ -84,15 +84,21 @@ The skill checks the library as step zero and recognises it **by the `decoration
 
 ### Installing the skill
 
-1. Download [`dist/ds-doc-build.skill`](dist/ds-doc-build.skill) — an ordinary zip archive.
-2. Unpack it into your skills folder:
+1. Download [`dist/ds-doc-build.skill`](dist/ds-doc-build.skill) — an ordinary zip archive, always the current version. Next to it sits the same build under a versioned name (`ds-doc-build-4.0.0.skill`) so you can tell at a glance which build you have on disk.
+2. **Delete the old folder first** — never unpack over it. The reference set changes between generations, and a leftover file makes the new `SKILL.md` read the folder as stale:
+
+   ```bash
+   rm -rf ~/.claude/skills/ds-doc-build
+   ```
+
+3. Unpack it into your skills folder:
 
    ```
    macOS / Linux   ~/.claude/skills/ds-doc-build/
    Windows         %USERPROFILE%\.claude\skills\ds-doc-build\
    ```
 
-3. Check the structure — it must look like this:
+4. Check the structure — it must look like this:
 
    ```
    ds-doc-build/
@@ -109,7 +115,7 @@ The skill checks the library as step zero and recognises it **by the `decoration
 
    **Without the `references` folder the skill refuses to run.** It verifies its own completeness as step zero and stops if a single file is unreadable: without the engine map and the recipes the output would differ from run to run, and you would not notice.
 
-4. Claude Code picks up skill folder changes on the fly. A restart is needed only if the `skills` folder did not exist before.
+5. Claude Code picks up skill folder changes on the fly. A restart is needed only if the `skills` folder did not exist before.
 
 An alternative to the archive — clone the repository and symlink it:
 
@@ -199,7 +205,8 @@ A section in Figma and a report: a link to the section, the three pages, block a
 │       ├── en.md
 │       └── ru.md
 ├── dist/
-│   └── ds-doc-build.skill        # the built archive for installation
+│   ├── ds-doc-build.skill        # current build, permanent name
+│   └── ds-doc-build-4.0.0.skill  # same build, version in the name
 ├── scripts/
 │   ├── pack.sh                   # rebuild the archive (macOS / Linux)
 │   └── pack.ps1                  # rebuild the archive (Windows)
