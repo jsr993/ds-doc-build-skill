@@ -51,7 +51,7 @@ Safeguard: after the engine is resolved, read the value of the specification hea
 
 1. **The library is mandatory.** The engine is recognised by its `decoration` variable collection — in an attached library (named «Component Spec Kit» by default) or locally in the file. Neither present → stop and ask to attach it (step 0). It cannot be attached from code.
 2. **Input is the component itself.** `COMPONENT_SET` or `COMPONENT`. An instance, frame, section or group → stop.
-3. **Never touch the source component.** Properties, layers, name, description — read only. The single exception is moving the set itself into `Slot Component` (6.3), and it is the only question in the whole build: **stop** before the move; without explicit permission do not move it.
+3. **Never touch the source component.** Properties, layers, name, description — read only. The single exception is moving the set itself into `Slot Component` (6.3) — that is part of the build and needs no confirmation.
 4. **Never touch the header.** `Title` is the section name, `Description` its subtitle; both are bound to `ds-title-description/<pattern>/*` variables. Never put the component name there. Any `setProps` on them severs the variable binding.
 5. **No numbers in text.** Sizes, spacing, radii, colours, typography → annotations with `properties` and measurements.
 6. **Never set visuals by value.** No `fills`, `fontSize`, `fontName`, `cornerRadius`, `strokeWeight` as literals: everything comes from the engine through `decoration` variables; a hand-set value overrides the theme. Copy geometry from neighbouring engine nodes. Never write into `decoration`. Exception — the SECTION (5.1), and even that by binding only.
@@ -66,7 +66,7 @@ Safeguard: after the engine is resolved, read the value of the specification hea
 0 Readiness → 1 Input and inventory → 2 Staging → 3 Three pages → 4 Handover
 ```
 
-Each step reports its facts before acting — what was read, what was found, what is about to be written. A report is not a question: state the facts and continue. Stops happen only where «stop» is written, and nothing is written to the file before step 2 closes.
+Each step reports its facts before acting — what was read, what was found, what is about to be written. A report is not a question: state the facts and continue. **From link to finished section there are no confirmations of any kind** — the build runs to the end. Stops happen only where «stop» is written, and every one of them is a dead end, not a checkpoint: unreadable references, no library, input that is not a component, a missing `ds-*` or variable. Nothing is written to the file before step 2 closes.
 
 ### 0. Readiness
 
@@ -208,9 +208,13 @@ Sizes — with an `addMeasurement` ruler. Styles — a `properties: ["fills"]` a
 | `Horizontal Props` | `Line[0]` = axis name (`Large=True`), `Line[1]` = values |
 | `Vertical Props` | one `Line` per nesting level; the innermost level is a frame with a `Line` per row block |
 
-The columns axis is the first **VARIANT axis** in property declaration order (other property types are not axes); the remaining VARIANT axes go into `Vertical Props` levels in the same order. Levels: `Vertical=True` on all; major level `Large=True`, auxiliary `Large=False`. Labels are verbatim VARIANT values.
+**Axis order comes from the set's geometry, not from declaration order.** The labels sit around the component as it is actually laid out, so read that layout: cluster the variants by `x` for the columns axis, by `y` for the vertical levels, outermost cluster first. Declaration order decides the specification blocks; the component page follows the eye. Levels: `Vertical=True` on all; major level `Large=True`, auxiliary `Large=False`. Labels are verbatim VARIANT values.
 
-**The move needs permission.** The set itself is the only thing the skill touches outside its own section: its parent and position in the file change. So before building this page — **stop**: name the component and ask permission to move it inside the section. Refused — build the page without `Slot Component`: the `Name` block and axis labels in place, the slot empty, the reason in the report.
+Bracket heights and gaps come from the same geometry: a level's label spans its cluster, so its height is the cluster's height. Give labels enough width for their text — a narrow instance wraps the caption mid-word.
+
+**The move is unconditional.** The set goes into `Slot Component` without asking — it is how this page works, not a favour to request. What changes is its parent and position on the canvas; the component itself, its properties and every instance of it elsewhere are untouched. Name the move in the report: where the set came from and where it now lives.
+
+On a **rebuild** the set moves out of the previous section's slot into the new one — a node lives in one place only. The old section keeps its pages and labels with an empty `Slot Component`; say so in the report and offer to delete it. Do not delete it unasked.
 
 ### 4. Handover
 

@@ -291,7 +291,16 @@ slot.appendChild(example);
 
 Slot limits: `layoutMode = "GRID"` is forbidden; a `ComponentNode` cannot go in directly (instances only); a frame nested in a slot cannot be bound to another slot.
 
-**`slot.resetSlot()` does not empty a slot — it restores the engine demo content.** Emptying a slot inside a **live instance** requires the marker recipe:
+**`slot.resetSlot()` does not empty a slot — it restores the engine demo content.** Emptying it takes one of two recipes, and picking the wrong one breaks the build. **Always clear the slot before appending anything.**
+
+**Default — a plain loop.** Works when the demo children are ordinary nodes (a `FRAME`, a shape). `Slot Structure` in `ds-doc-component` is this case: its demo is a frame named `Button`.
+
+```js
+while (slot.children.length) slot.children[0].remove();   // then append your own
+slot.appendChild(myInstance);
+```
+
+**The marker recipe — only when the plain loop throws** `in remove: Node not found`. That happens when the demo children are **instances of the same component you are about to append**: `Slot State`, whose demo is three `ds-doc-component-state` instances.
 
 ```js
 // 1. append a plain marker frame — demo children become mortal
@@ -308,7 +317,7 @@ slot.children.find(c => c.name === "__MARKER__").remove();
 // 4. only now append your own instances
 ```
 
-Why not simpler: after the first `remove()` the remaining demo children turn into phantoms — their ids read but the nodes reject mutation, and a fresh `findOne` does not help. Appending an instance of the **same component as the demo children** re-keys them the same way; a plain frame does not. In a subtree **detached** from a pattern none of this applies — everything is real nodes, clear them with a plain loop.
+Why the two differ: after the first `remove()` the remaining demo children can turn into phantoms — ids read, nodes reject mutation, a fresh `findOne` does not help. Appending an instance of the **same component as the demo** re-keys them the same way; a plain frame does not, which is what the marker exploits. But on a slot whose demo is a single plain node the marker is what causes the re-key — there the plain loop is correct. In a subtree **detached** from a pattern none of this applies: everything is real nodes, a plain loop always works.
 
 An instance dropped into a slot gets `layoutSizingHorizontal = "FIXED"` at its natural width and overflows the container. Set `FILL` explicitly after `appendChild`.
 
@@ -521,9 +530,9 @@ A number here breaks the theme: a copy's engine paddings are different.
 | a page refuses new blocks | it is an instance, not a frame | `detachInstance()` the page wrapper |
 | Content empty after detach | demo blocks removed, nothing added | fill in the same call |
 | page context reset | `figma.currentPage` resets between calls | `setCurrentPageAsync` at the start of every call, exactly once |
-| `in remove: Node not found` on a slot's second child | after the first `remove()` in a SLOT inside an instance the remaining demo children become phantoms: ids read, nodes reject mutation. A fresh `findOne` does not help | the marker recipe: `appendChild` an empty marker frame → demo children become mortal, remove them with fresh lookups → remove the marker → append your own nodes. An empty slot does not resurrect the demo |
+| `in remove: Node not found` clearing a slot whose demo is **instances of the component you are appending** (`Slot State`) | after the first `remove()` the remaining demo children turn into phantoms: ids read, nodes reject mutation. A fresh `findOne` does not help | the marker recipe (recipe 5): marker frame in → remove demo by fresh lookup → marker out → append yours |
+| `in remove: Node not found` clearing a slot whose demo is **a single plain node** (`Slot Structure`, a frame named `Button`) | the marker append is itself what re-keyed the demo | plain loop, and clear **before** appending anything: `while (slot.children.length) slot.children[0].remove()` |
 | same, but after `setProperties` | **any** `setProperties` on an instance (BOOLEAN and layout properties included) re-keys its subtree ids | all slot surgery before any `setProperties`; set properties leaf to root: chip → row → host |
-| same when appending instances into a slot | appending an instance of the **same component as the demo children** also re-keys them; a plain frame does not | the same marker recipe: clear the demo before appending your instances |
 | many edits needed inside a slot | a slot in a live instance is fragile throughout | after a page `detachInstance()` the whole subtree is real nodes, no phantoms; reuse the detached demo block instead of building inside a live instance |
 | `setProperties` variant swap + inner mutations | the swap recreates the instance subtree | instance the needed variant directly: `set.children.find(v => v.name.includes('Type=State')).createInstance()` — no swap happens |
 | `Invalid property "minWidth" for a FRAME node` on an annotation | annotation `properties` accept only properties actually set on the node; `BOOLEAN_OPERATION` takes no annotations at all | pick `properties` per node (`width`/`height` are almost always valid), skip boolean operations |

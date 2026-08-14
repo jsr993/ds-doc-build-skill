@@ -72,7 +72,7 @@ Annotation presets in the file: **Development** (green), **Interaction** (blue),
 
 The skill reads the component, takes an inventory of variants and properties, and builds a section from the three `ds-doc` patterns. The source component it only reads.
 
-**It runs autonomously.** From link to finished section — no plan to confirm, no interview. Built for the batch job: documenting dozens of components in a row, not one. Questions arise exactly where the skill stops: no library, input is not a component, an engine variable is missing — and once before moving your component into the slot on the `Components` page.
+**It runs autonomously.** From link to finished section — **no confirmations of any kind**: no plan, no interview, no question before writing. Built for the batch job: documenting dozens of components in a row, not one. The skill stops only where there is nowhere to go: no library, input is not a component, a missing engine variable, unreadable references. A stop is a dead end, not a checkpoint.
 
 ### What you need
 
@@ -154,19 +154,18 @@ https://www.figma.com/design/<fileKey>/<file>?node-id=3014-2258
 
 A link to an instance, frame, section or group will not do: the skill names the type of what arrived, says it needs a component link, and stops. Not pedantry — that same node later goes into `Slot Component` on the Components page, and an instance cannot go there.
 
-From there you barely intervene. The skill reports the inventory — how many variants, which axes, in what order the specification blocks will go — and builds the three pages, showing a snapshot after each. The single question in the whole build is permission to move your component set inside the documentation section.
+From there you do not intervene at all. The skill reports the inventory — how many variants, which axes, in what order the specification blocks will go — and builds the three pages, showing a snapshot after each, to the end.
 
 You can also invoke the skill directly: `/ds-doc-build`.
 
 ### Where it will still stop
 
-Exactly five stops, all about it being pointless or impermissible to continue:
+Exactly four stops, each a dead end rather than a checkpoint:
 
 - the `references/` files are unreadable — the skill was unpacked incompletely;
 - the file has neither a library nor local `ds-*`;
 - the input is not a component but an instance, frame, section or group;
-- an engine component or a `decoration` variable was not found;
-- moving your component set into `Slot Component` — the only action outside the documentation section, never done without permission.
+- an engine component or a `decoration` variable was not found.
 
 Everything else the skill decides itself and reports what it decided. A deliberate trade: across a stream of fifty components, a question per component is not care — it is a full stop.
 
@@ -180,13 +179,13 @@ Everything else the skill decides itself and reports what it decided. A delibera
 | specification lead | a non-empty component `description` verbatim; empty — from the template |
 | block headings | from the locale glossary: `Configuration` → Configurations, `Style` → Styles, `Size` → Sizes, `State` → States; the rest as in the component |
 | row descriptions | on for configurations, styles and sizes; off for states |
-| the columns axis on `Components` | the first VARIANT axis in property declaration order |
+| the axes on `Components` | read from the set's actual layout — columns from the `x` clusters, vertical levels from the `y` clusters, outermost first |
 
 Everything the skill wrote itself it lists in the report as a separate list. That is the place worth reading — the rest is verifiable against the component.
 
 ### What the skill does not do
 
-- It never changes the source component — properties, layers, name and description are read-only. Moving the set into `Slot Component` happens only with your permission.
+- It never changes the source component — properties, layers, name and description are read-only. It does move the set into `Slot Component`, which changes its parent and position on the canvas and nothing else; the move is named in the report.
 - It writes nothing outside its own section.
 - It never sets visuals by value and never writes into the `decoration` collection.
 - It never invents meaning: configuration purposes, style differences, text rules and recommendations it leaves empty and lists in the report rather than masking with a placeholder.

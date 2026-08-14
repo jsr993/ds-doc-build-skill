@@ -14,6 +14,20 @@
 
 ## Скилл
 
+### 4.1.0 — 14.08.2026
+
+No confirmations remain anywhere in the build. Link in, finished section out.
+
+#### Changed
+
+- **Moving the source set into `Slot Component` is unconditional.** It was the last question in the build; the owner's ruling is that it always happens and needs no asking. What the move changes is the set's parent and position on the canvas — properties and instances elsewhere are untouched — and it is named in the report. On a rebuild the set moves out of the previous section's slot into the new one; the old section keeps its pages with an empty slot, and the report offers to delete it.
+- **Four stops instead of five,** each a dead end rather than a checkpoint: unreadable references, no library, input that is not a component, a missing `ds-*` or variable.
+- **Axes on the `components` page are read from the set's geometry,** not from property declaration order — columns from the `x` clusters, vertical levels from the `y` clusters, outermost first, with bracket heights taken from the cluster heights. Declaration order still governs the specification blocks. Found in the field: `Chips Item` declares `Style` before `Size` but is laid out `Size → Style → State`, so declaration order would have mislabelled every bracket.
+
+#### Fixed
+
+- **Slot clearing had one recipe where two are needed,** and the wrong one breaks the build. A plain loop before appending anything is the default and works when the demo is an ordinary node — `Slot Structure`, whose demo is a frame named `Button`. The marker recipe is only for slots whose demo children are instances of the component being appended, like `Slot State`; on a plain-node demo the marker append is itself what re-keys the node. Both cases now stand in `build-recipes.md` with their symptoms.
+
 ### 4.0.0 — 12.08.2026
 
 Major: the reference set changed. Gate ceremony cut, `execution.md` folded into `SKILL.md`.
