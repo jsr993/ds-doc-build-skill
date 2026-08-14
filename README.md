@@ -91,7 +91,7 @@ The skill checks the library as step zero and recognises it **by the `decoration
    | [`ds-doc-build.skill`](dist/ds-doc-build.skill) | `SKILL.md` + `references/` at the root | unpacking by hand **into** `~/.claude/skills/ds-doc-build/` |
    | [`ds-doc-build.zip`](dist/ds-doc-build.zip) | everything wrapped in a `ds-doc-build/` folder | uploading to a skill form, or unpacking anywhere — the folder comes with the archive |
 
-   Each also exists under a versioned name (`ds-doc-build-4.0.0.skill`, `ds-doc-build-4.0.0.zip`) so a build on disk identifies itself without being opened. The unversioned names are permanent addresses and always carry the current version.
+   Each also exists under a versioned name (`ds-doc-build-4.1.0.skill`, `ds-doc-build-4.1.0.zip`) so a build on disk identifies itself without being opened. **`dist/` holds the current version only** — the build deletes older ones; git keeps the history.
 2. **Delete the old folder first** — never unpack over it. The reference set changes between generations, and a leftover file makes the new `SKILL.md` read the folder as stale:
 
    ```bash
@@ -104,6 +104,8 @@ The skill checks the library as step zero and recognises it **by the `decoration
    macOS / Linux   ~/.claude/skills/ds-doc-build/
    Windows         %USERPROFILE%\.claude\skills\ds-doc-build\
    ```
+
+   The path matters: Claude Code lists a skill only when `SKILL.md` with its frontmatter sits **directly inside** the folder. An empty folder, or files one level deeper, means the skill never appears in the picker — and no error is raised either.
 
 4. Check the structure — it must look like this:
 

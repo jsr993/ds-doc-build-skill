@@ -22,6 +22,14 @@ version="$(grep -m1 -oE '^### [0-9]+\.[0-9]+\.[0-9]+' CHANGELOG.md | grep -oE '[
 [ -n "$version" ] || { echo "не удалось прочитать версию из CHANGELOG.md"; exit 1; }
 
 mkdir -p dist
+# в dist живёт только текущая версия: сборки прошлых версий удаляются
+for f in dist/ds-doc-build-*.skill dist/ds-doc-build-*.zip; do
+  [ -e "$f" ] || continue
+  case "$f" in
+    "dist/ds-doc-build-$version.skill"|"dist/ds-doc-build-$version.zip") ;;
+    *) echo "  удаляю прошлую версию: $(basename "$f")"; rm -f "$f" ;;
+  esac
+done
 rm -f "dist/ds-doc-build.skill" "dist/ds-doc-build-$version.skill" \
       "dist/ds-doc-build.zip"   "dist/ds-doc-build-$version.zip"
 

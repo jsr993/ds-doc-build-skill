@@ -51,6 +51,11 @@ function New-SkillArchive {
 $dist = Join-Path $root "dist"
 New-Item -ItemType Directory -Force -Path $dist | Out-Null
 
+# в dist живёт только текущая версия: сборки прошлых версий удаляются
+Get-ChildItem $dist -File | Where-Object {
+  $_.Name -match '^ds-doc-build-(\d+\.\d+\.\d+)\.(skill|zip)$' -and $Matches[1] -ne $version
+} | ForEach-Object { Write-Host ("  удаляю прошлую версию: " + $_.Name); Remove-Item $_.FullName }
+
 New-SkillArchive (Join-Path $dist "ds-doc-build.skill") ""
 Copy-Item (Join-Path $dist "ds-doc-build.skill") (Join-Path $dist "ds-doc-build-$version.skill") -Force
 
