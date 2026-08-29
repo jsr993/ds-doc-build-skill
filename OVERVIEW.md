@@ -170,7 +170,7 @@ markdown emphasis, and write links as full https:// URLs so Figma makes them cli
 >
 > **spec-kit-theme** — send it a reference image and it writes a new theme as a new mode: fourteen decisions read off the picture, expanded into all 164 variables. Existing modes are never touched — a failed theme costs one mode deletion.
 >
-> Both run in Claude Code, and each ships a one-file build for the Figma agent.
+> Both skills are published in Figma Community as well — save them and run them right inside Figma with the agent, no setup. The full Claude Code versions live in the repository.
 >
 > This is a design representation of a component, not an implementation spec for developers.
 >

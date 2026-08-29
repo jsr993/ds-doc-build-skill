@@ -1,13 +1,20 @@
 ---
 name: spec-kit-theme
-description: "Builds a new theme for the Component Spec Kit library from a reference image with the Figma agent: reads the palette, radii, density and typography off the picture, expands them into the 164 variables of the theme collection and adds the result as a separate mode. Use on «build a theme from this reference», «generate a palette», «сделай тему по референсу», «сгенери палитру», «добавь тему в theme»."
+description: "Builds a new theme for the Component Spec Kit library — the free engine file from Figma Community — from a reference image with the Figma agent: reads the palette, radii, density and typography off the picture, expands them into the 164 variables of the theme collection and adds the result as a separate mode. Use on «build a theme from this reference», «generate a palette», «сделай тему по референсу», «сгенери палитру», «добавь тему в theme»."
 ---
 
 # A Component Spec Kit theme from a reference — Figma agent build
 
-**This one file is the whole skill.** Derived from `spec-kit-theme` 0.2.0 for Claude Code; the
-contract with the `theme` collection is identical, the mechanics are the editor's own. Full
-version and history: github.com/jsr993/component-spec-kit.
+**This one file is the whole skill.** Derived from the `spec-kit-theme` Claude Code build; the
+contract with the `theme` collection is identical, the mechanics are the editor's own.
+
+**The kit and the skills are separate pieces — take what you need.** The `theme` collection
+ships with the free Component Spec Kit file from Figma Community
+(figma.com/community/file/1666170620013431022/component-spec-kit); themes can also be made by
+hand, one mode at a time. This skill automates that and runs right inside Figma. The full
+Claude Code version — the collection map, the token-usage map, the six territories, the
+expansion tables — lives at github.com/jsr993/component-spec-kit, alongside the companion
+`spec-kit-docs`, which assembles the documentation itself.
 
 Input — a reference image and a file with the library. Output — a new mode in the `theme`
 variable collection with all 164 variables set.

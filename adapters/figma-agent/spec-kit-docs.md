@@ -1,14 +1,21 @@
 ---
 name: spec-kit-docs
-description: "Builds component documentation on the ds-* engine (the «Component Spec Kit» library) with the Figma agent. Input — the component itself, selected or linked (COMPONENT_SET or COMPONENT). The skill takes an inventory of variants, properties and anatomy and assembles a section of three pages: changelog, specification, components. Use on «document this component», «build component docs», «собери документацию», «задокументируй компонент», «оформи по шаблону документации»."
+description: "Builds component documentation on the ds-* engine — the free «Component Spec Kit» file from Figma Community — with the Figma agent. Input — the component itself, selected or linked (COMPONENT_SET or COMPONENT). The skill takes an inventory of variants, properties and anatomy and assembles a section of three pages: changelog, specification, components. Use on «document this component», «build component docs», «собери документацию», «задокументируй компонент», «оформи по шаблону документации»."
 ---
 
 # Building component documentation — Figma agent build
 
 **This one file is the whole skill.** The Figma agent takes no reference folders, so everything
-lives here. Derived from `spec-kit-docs` 6.2.0 for Claude Code: the contract with the engine is
+lives here. Derived from the `spec-kit-docs` Claude Code build: the contract with the engine is
 identical, the mechanics are the editor's own — no Plugin API code, no keys, no imports by hand.
-Full version and history: github.com/jsr993/component-spec-kit.
+
+**The kit and the skills are separate pieces — take what you need.** The engine is a free
+Figma Community file (figma.com/community/file/1666170620013431022/component-spec-kit):
+duplicate it, retheme it, document components by hand — it owes nothing to any skill. This
+skill automates the assembly and runs right inside Figma. The full Claude Code version — the
+engine map, the Plugin API recipes, the locales — lives at
+github.com/jsr993/component-spec-kit, alongside the companion `spec-kit-theme`, which builds
+new themes for the kit from a reference image.
 
 Input — a product component. Output — a SECTION of three pages assembled from `ds-doc/*` engine
 components. Nothing is drawn from scratch: patterns are instantiated and filled.
