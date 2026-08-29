@@ -166,11 +166,10 @@ markdown emphasis, and write links as full https:// URLs so Figma makes them cli
 >
 > Duplicate this file, retheme it, and document components by hand. Or install the skills and let them do the mechanical part:
 >
-> **spec-kit-docs** — send it a component link and it assembles the section autonomously, from link to finished pages, no questions asked. Facts come from the component, wording from templates; what cannot be derived is reported as a gap, never invented.
+> **spec-kit-docs** — an AI skill for the Figma agent, published right here in Community: save it and run /spec-kit-docs on a selected component. It assembles the section autonomously, from component to finished pages, no questions asked. Facts come from the component, wording from templates; what cannot be derived is reported as a gap, never invented.
+> https://www.figma.com/community/skill/94237
 >
-> **spec-kit-theme** — send it a reference image and it writes a new theme as a new mode: fourteen decisions read off the picture, expanded into all 164 variables. Existing modes are never touched — a failed theme costs one mode deletion.
->
-> Both skills are published in Figma Community as well — save them and run them right inside Figma with the agent, no setup. The full Claude Code versions live in the repository.
+> **spec-kit-theme** — a companion skill for Claude Code: send it a reference image and it writes a new theme as a new mode, all 164 variables. Existing modes are never touched — a failed theme costs one mode deletion. It lives in the repository, alongside the full Claude Code version of spec-kit-docs.
 >
 > This is a design representation of a component, not an implementation spec for developers.
 >
