@@ -18,7 +18,7 @@ The skill writes no prose into Figma, so there is nothing else to localise.
 
 ## Required context
 
-**Version 0.2.0.** `SKILL.md` and `references/` ship as one archive and are versioned together.
+**Version 0.3.0.** `SKILL.md` and `references/` ship as one archive and are versioned together.
 
 | File | When to read |
 |---|---|

@@ -208,9 +208,9 @@ A section in Figma and a report: a link to the section, the three pages, block a
 
 ### The Figma agent build
 
-The same skill also runs inside Figma itself — as a [custom skill for the Figma agent](https://help.figma.com/hc/en-us/articles/40283639496599) (in beta since May 2026). The agent's custom skills take **one markdown file** and no reference folders, so the whole contract is flattened into [`adapters/figma-agent/spec-kit-docs.md`](adapters/figma-agent/spec-kit-docs.md): the twenty engine names with their typos, the section tier logic, the text rules and the checklist are identical to the Claude Code build; the Plugin API recipes are replaced by editor-level instructions, because the agent works with its own canvas actions, not code.
+The same skill also runs inside Figma itself — as a [custom skill for the Figma agent](https://help.figma.com/hc/en-us/articles/40283639496599) (in beta since May 2026). The agent's custom skills take **one markdown file** and no reference folders, so each skill is flattened into one file — [`adapters/figma-agent/spec-kit-docs.md`](adapters/figma-agent/spec-kit-docs.md) and [`adapters/figma-agent/spec-kit-theme.md`](adapters/figma-agent/spec-kit-theme.md). In the docs build the twenty engine names with their typos, the section tier logic, the text rules and the checklist are identical to the Claude Code build; the Plugin API recipes are replaced by editor-level instructions, because the agent works with its own canvas actions, not code.
 
-To install: open the agent's chat sidebar in Figma Design → skills → add a skill → upload the file (or paste its contents). It becomes the `/spec-kit-docs` slash command, available across your files; publish it to the team to share. Select a component or paste its link and invoke the command.
+To install: open the agent's chat sidebar in Figma Design → skills → add a skill → upload the file (or paste its contents). Each becomes a slash command — `/spec-kit-docs`, `/spec-kit-theme` — available across your files; publish to the team or to the Community to share. Select a component or paste its link and invoke the command.
 
 What the single-file build does not carry: key import and the property-suffix resolver (Plugin API mechanics the agent does not need), and the reference-folder completeness check (there is nothing to check). Annotations and measurements follow the agent's abilities — where unavailable, the layer goes into the report as a manual step, and numbers never go into text.
 
@@ -301,7 +301,8 @@ This skill checks its own completeness too, and stops the same way if a referenc
 │           └── recipes.md            # Plugin API: addMode, setValueForMode, aliases
 ├── adapters/
 │   └── figma-agent/
-│       └── spec-kit-docs.md          # one-file build for Figma's built-in agent
+│       ├── spec-kit-docs.md          # one-file builds for Figma's built-in agent
+│       └── spec-kit-theme.md
 ├── dist/                             # four archives per skill, current version only
 │   ├── spec-kit-docs.skill           # flat: SKILL.md at the archive root
 │   ├── spec-kit-docs-6.0.0.skill     # same, version in the name
