@@ -31,6 +31,7 @@ Keep that in mind when reading the optional markdown export: it is a readback of
 | **The engine** | Figma file: twenty `ds-doc/*` components and the `theme` variable collection — 164 variables, three modes | Figma Community |
 | **`spec-kit-docs`** | the build pipeline, the engine map, the Plugin API recipes, the locales | this repository, `skills/spec-kit-docs/` |
 | **`spec-kit-theme`** | the collection map, the token-usage map, the six territories, the expansion tables | this repository, `skills/spec-kit-theme/` |
+| **The Figma agent build** | `spec-kit-docs` flattened into one file for Figma's built-in agent — same contract, editor-level mechanics | this repository, `adapters/figma-agent/` |
 
 Neither skill works without the engine. The engine works without both — you can build every page by hand.
 
