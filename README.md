@@ -214,7 +214,7 @@ Everything you see in the documentation is a `theme` variable, and a **mode** of
 
 `spec-kit-theme` adds a mode. You send a picture of a design you like — a screenshot of a site, a page from a style guide, a shot of someone else's documentation — and the skill writes a new column into `theme`.
 
-> The skill is currently written in Russian. It answers English requests, but its own text and reports are Russian.
+> The report follows the language of the request: ask in Russian — the brief and the handover come back in Russian. The skill writes no prose into Figma, so there is nothing else to localise.
 
 ### How it works
 

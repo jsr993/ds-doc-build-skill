@@ -93,7 +93,7 @@ A second skill would be justified only if the **structure** of the documentation
 
 A Russian `SKILL.md` is not maintained: two parallel instruction texts would drift apart faster than two skills.
 
-**`spec-kit-theme` is currently the exception:** it is written in Russian, has no `locales/`, and reports in Russian whatever language the request came in. That is a gap, not a decision — the reasons above apply to it identically. Its `description` already carries English trigger phrases so the skill fires on an English request; the rest of the text has yet to be moved. Until it is, the repository is not uniformly English, and the status table in [OVERVIEW.md](OVERVIEW.md) says so.
+**`spec-kit-theme` follows the same rule** — English `SKILL.md` and references, bilingual triggers in the `description`. What it deliberately does not have is a `locales/` folder: the skill writes no prose into Figma — variable values and a mode name only — so the one human-facing text is its report, and the report follows the language of the request, worded by the model rather than read from a file. Should the theme skill ever start writing strings into the file, the locale contract of section 5 applies to it from that moment.
 
 ### A bilingual `description`
 

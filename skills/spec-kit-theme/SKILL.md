@@ -1,126 +1,135 @@
 ---
 name: spec-kit-theme
-description: "Собирает новую тему для библиотеки Component Spec Kit по картинке-референсу: читает с неё палитру, радиусы, плотность и типографику, разворачивает в 164 переменных коллекции theme и добавляет отдельным модом. Использовать, когда прислана картинка оформления и просят «сделай тему по референсу», «сгенери палитру», «добавь тему в theme», «раскрась документацию как здесь», build a theme from this reference. Требует Figma MCP с правом записи."
+description: "Builds a new theme for the Component Spec Kit library from a reference image: reads the palette, radii, density and typography off the picture, expands them into the 164 variables of the theme collection and adds the result as a separate mode. Use when given a design reference image and asked to build a theme from this reference, generate a palette, add a theme to the theme collection, restyle the documentation like this — or in Russian: «сделай тему по референсу», «сгенери палитру», «добавь тему в theme», «раскрась документацию как здесь». Requires Figma MCP with write access."
 ---
 
-# Тема Component Spec Kit по референсу
+# A Component Spec Kit theme from a reference
 
-Вход — картинка оформления и файл с библиотекой. Выход — новый мод в коллекции `theme`
-со всеми 164 переменными.
+Input — a picture of a design and a file with the library. Output — a new mode in the
+`theme` collection with all 164 variables set.
 
-**Тема — это мод, а не файл.** Существующие `lite` и `enterprise` не трогаются: тема
-добавляется рядом, переключается штатным переключателем мода, удаляется одним движением.
-Поэтому неудачная тема ничего не стоит.
+**A theme is a mode, not a file.** Existing modes are never touched: the theme is added
+alongside, switched with the standard mode switcher, deleted in one move. A failed theme
+therefore costs nothing.
 
-## Обязательный контекст
+**The language of the report follows the language of the request.** Asked in Russian —
+the brief, the step reports and the handover are Russian; asked in English — English.
+The skill writes no prose into Figma, so there is nothing else to localise.
 
-**Версия 0.1.0** — костяк. `SKILL.md` и `references/` версионируются вместе.
+## Required context
 
-| Файл | Когда читать |
+**Version 0.2.0.** `SKILL.md` and `references/` ship as one archive and are versioned together.
+
+| File | When to read |
 |---|---|
-| `references/theme-map.md` | до первого действия — все 164 переменных, ярусы, что не тема |
-| `references/token-usage.md` | до первого действия — какой токен что красит и двигает |
-| `references/style-space.md` | до чтения референса — что достижимо и шесть территорий |
-| `references/expansion-rules.md` | до чтения референса — бриф и развёртка |
-| `references/recipes.md` | до первой записи — Plugin API |
+| `references/theme-map.md` | before the first action — all 164 variables, the tiers, what is not a theme |
+| `references/token-usage.md` | before the first action — which token paints and moves what |
+| `references/style-space.md` | before reading the reference — what is achievable, the six territories |
+| `references/expansion-rules.md` | before reading the reference — the brief and the expansion |
+| `references/recipes.md` | before the first write — Plugin API |
 
-## Чем работать
+## What to work with
 
-Нужны три возможности: выполнить JS в файле Figma, посмотреть картинку-референс, право записи.
-Чего-то нет — стоп с названием недостающего.
+Three capabilities are needed: executing JS in the Figma file, viewing the reference image,
+write access. One missing — stop, naming what is missing.
 
-| Обвязка | Выполнение | Картинка |
+| Harness | Execution | Image |
 |---|---|---|
-| Claude Code + Figma MCP | `use_figma`, с `figma-use` в `skillNames` перед **каждым** вызовом | вложение в сообщении |
+| Claude Code + Figma MCP | `use_figma`, with `figma-use` in `skillNames` before **every** call | attachment in the message |
 
-Контракт вызова: один вызов — один шаг; `return` вместо `console.log`; возвращать id
-изменённого; упавший вызов не повторять вслепую.
+Call contract: one call — one step; `return` instead of `console.log`; return the ids of what
+changed; never blindly retry a failed call.
 
-## Незыблемые правила
+## Inviolable rules
 
-1. **Существующие моды не трогать.** Скилл только добавляет мод и пишет в него. Любая запись
-   в `lite` или `enterprise` — ошибка.
-2. **Имена переменных — контракт.** Переносить дословно, включая опечатки (`size-mono-02 2`,
-   `paragraphy-spacing`, `interation`) и группу `layers`.
-3. **Не тема — копируется.** Тексты разделов, ширина документа, мелочь `layer-03` берутся из
-   мода-образца как есть. Список — в `theme-map.md`, раздел 3.
-4. **Алиасы сохраняются.** Семантический ярус повторяет схему `lite`. Разрывать алиас в
-   значение нельзя: тема перестанет отвечать на правку примитива.
-5. **Четырнадцать решений, не 164.** С референса читается бриф; значения даёт развёртка.
-   Числа, названные «на глаз» мимо таблиц, — ошибка.
-6. **Не прочиталось — наследуется.** Признак, которого на картинке нет, берётся из образца
-   и называется в отчёте. Выдумывать нельзя.
-7. **Гарнитуры — только из Google Fonts, доступных в Figma**, и только после проверки
-   `listAvailableFontsAsync`.
-8. **Возвращать id** мода и список записанного.
+1. **Never touch an existing mode.** The skill only adds a mode and writes into it. Any write
+   into `lite`, `enterprise` or another existing mode is an error.
+2. **Variable names are a contract.** Transfer verbatim, typos included (`size-mono-02 2`,
+   `paragraphy-spacing`, `interation`), along with the `layers` group name.
+3. **What is not a theme is copied.** Section texts, document width and the small `layer-03`
+   details are taken from the sample mode as they are. The list is in `theme-map.md`, section 3.
+4. **Aliases are preserved.** The semantic tier repeats the `lite` scheme. Flattening an alias
+   into a value is forbidden: the theme would stop responding to a primitive edit.
+5. **Fourteen decisions, not 164.** The reference yields a brief; the expansion yields the
+   values. Numbers named «by eye» past the tables are an error.
+6. **What cannot be read is inherited.** A trait absent from the picture is taken from the
+   sample and named in the report. Inventing is forbidden.
+7. **Font families — only Google Fonts available in Figma**, and only after a
+   `listAvailableFontsAsync` check.
+8. **Return ids** — the mode id and the list of what was written.
 
-## Пайплайн
+## Pipeline
 
 ```
-0 Готовность → 1 Референс и бриф → 2 Развёртка → 3 Запись мода → 4 Сдача
+0 Readiness → 1 Reference and brief → 2 Expansion → 3 Writing the mode → 4 Handover
 ```
 
-Каждый шаг отчитывается фактами до действия. Отчёт — не вопрос. Остановки только там, где
-написано «стоп»: не читаются референсы, нет коллекции `theme`, нет картинки, нет гарнитуры,
-не создаётся мод.
+Each step reports its facts before acting. A report is not a question. Stops only where
+«stop» is written: unreadable references, no `theme` collection, no image, a missing font,
+a mode that cannot be created.
 
-### 0. Готовность
+### 0. Readiness
 
-Прочитать три файла из таблицы. Найти коллекцию `theme` (рецепт 1) и мод-образец — `lite`,
-при его отсутствии первый. Назвать: число переменных, имена существующих модов, имя образца.
+Read the files from the table. Find the `theme` collection (recipe 1) and the sample mode —
+`lite`, or the first mode if it is absent. Name: the variable count, the names of the existing
+modes, the sample's name.
 
-Коллекции нет — **стоп**: файл не содержит библиотеки.
+No collection — **stop**: the file carries no library.
 
-### 1. Референс и бриф
+### 1. Reference and brief
 
-Посмотреть картинку. **Сначала выбрать территорию** по трём вопросам из `style-space.md`,
-раздел 5 — светлота, чем отделены карточки, какие углы. Взять её значения за основу и
-уточнить по референсу. Изобретать характер вне шести территорий нельзя.
+Look at the picture. **Pick a territory first**, by the three questions of `style-space.md`,
+section 5 — lightness, what separates the cards, what the corners are. Take its values as the
+base and refine them against the reference. Inventing a character outside the six territories
+is forbidden.
 
-Затем заполнить бриф из четырнадцати решений по таблице «Как читать бриф»
-в `expansion-rules.md`.
+Then fill the fourteen-decision brief by the «How to read the brief» table
+in `expansion-rules.md`.
 
-Отчёт закрывается **названной территорией и брифом целиком**, с пометкой у каждого решения: прочитано с картинки или
-унаследовано из образца. Это единственное место, где видно, что скилл взял с референса,
-а что придумала развёртка.
+The report closes with **the named territory and the whole brief**, each decision marked:
+read off the picture or inherited from the sample. This is the only place where what the skill
+took from the reference is separated from what the expansion decided.
 
-Картинки нет — **стоп**: без референса тема не выводится.
+No image — **stop**: a theme cannot be derived without a reference.
 
-### 2. Развёртка
+### 2. Expansion
 
-Развернуть бриф в 164 значения по таблицам `expansion-rules.md`, раздел 3.
-Прогнать проверки раздела 4: гарнитуры существуют, контраст проходит, шкалы монотонны.
+Expand the brief into 164 values by the tables of `expansion-rules.md`, section 3.
+Run the checks of section 4: the fonts exist, the contrast passes, the scales are monotone.
 
-Проверка не прошла — **не записывать**. Исправить бриф и развернуть заново.
+A check failed — **do not write**. Fix the brief and expand again.
 
-Отчёт: палитра, кегли, шкала отступов, радиусы, гарнитуры с начертаниями.
+Report: the palette, the sizes, the spacing scale, the radii, the families with their styles.
 
-### 3. Запись мода
+### 3. Writing the mode
 
-Один вызов на всё, порядок из рецептов 2–4:
+One call for everything, in the order of recipes 2–4:
 
-1. `addMode(<имя темы>)`;
-2. перенести из образца алиасы и «не тему»;
-3. записать примитивы темы поверх.
+1. `addMode(<theme name>)`;
+2. carry the aliases and the «not a theme» values over from the sample;
+3. write the theme's primitives on top.
 
-Порядок обязателен: перенос после записи затрёт вычисленное.
+The order is mandatory: carrying over after the write would clobber the computed values.
 
-### 4. Сдача
+### 4. Handover
 
-Проверка полноты (рецепт 6): все 164 получили значение. Не все — назвать какие.
+Completeness check (recipe 6): all 164 got a value. Not all — name which.
 
-Отчёт: имя и id мода, бриф с пометками источника, что унаследовано, замены гарнитур,
-как переключить мод в файле.
+Report: the mode's name and id, the brief with its source marks, what was inherited, font
+substitutions, how to switch the mode in the file.
 
-## Чек-лист
+## Checklist
 
-1. `lite` и `enterprise` не изменены — ни одного `setValueForMode` по их модам.
-2. Новый мод создан, имя совпадает с `text/ds-name`.
-3. Все 164 переменных имеют значение в новом моде.
-4. Семантический ярус — алиасы, повторяют схему образца.
-5. Тексты разделов, ширина документа и `layer-03` скопированы дословно.
-6. Гарнитуры проверены через `listAvailableFontsAsync`, замены названы.
-7. Контраст текста к подложке: `primary` ≥ 7:1, `secondary` ≥ 4.5:1.
-8. Шкалы `space`, `gap`, `radius`, `size` монотонны.
-9. В отчёте названа территория и у каждого решения брифа сказано: с картинки, из территории или унаследовано.
-10. Характер не выходит за шесть территорий `style-space.md`; расхождение с референсом названо.
+1. Existing modes unchanged — not a single `setValueForMode` against their mode ids.
+2. The new mode exists, its name matches `text/ds-name`.
+3. All 164 variables have a value in the new mode.
+4. The semantic tier is aliases, repeating the sample's scheme.
+5. Section texts, document width and `layer-03` copied verbatim.
+6. Families verified through `listAvailableFontsAsync`, substitutions named.
+7. Text-to-surface contrast: `primary` ≥ 7:1, `secondary` ≥ 4.5:1.
+8. The `space`, `gap`, `radius`, `size` scales are monotone.
+9. The report names the territory, and every brief decision says: off the picture, from the
+   territory, or inherited.
+10. The character stays within the six territories of `style-space.md`; divergence from the
+    reference is named.
+11. The report is written in the language of the request.

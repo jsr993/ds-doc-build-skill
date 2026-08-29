@@ -1,126 +1,133 @@
-# Что чем управляется
+# What drives what
 
-Снято обходом привязок в секциях `pattern` и `components` файла `7K3kJmoSm6VyrUwsrqCMwX`,
-27.08.2026. Отвечает на вопрос «поменяю этот токен — что поедет».
-
----
-
-## Главное: примитивы на холст не смотрят
-
-Обход снят на коллекции из 157 переменных — до сверки с основным файлом, где их 164.
-К узлам были привязаны 106. Ни одна переменная группы
-`global/space`, `global/radius`, `global/gap`, `global/border` **не привязана напрямую нигде**.
-
-Это не упущение, а устройство. Холст видит только семантику — `doc/header/*`,
-`doc/content/*`, `layer-02/*`, `layer-03/*` — а та алиасится на `global/*`.
-
-Отсюда два следствия, и оба важны для темы:
-
-- **Правка `global` доезжает до всего**, что на неё завязано, одним движением. Ради этого ярус и существует.
-- **Разорванный алиас глушит правку.** В `enterprise` четыре переменных шапки разорваны в значения — правка `global/space` до них не дойдёт. Повторять это нельзя.
+Taken by traversing the bindings in the `pattern` and `components` sections of file
+`7K3kJmoSm6VyrUwsrqCMwX`, 27.08.2026. Answers the question «I change this token — what moves».
+Component names below follow the current `ds-doc/*` scheme; the traversal predates the rename,
+the bindings do not depend on it.
 
 ---
 
-## Три слоя вложенности
+## The point: primitives never look at the canvas
 
-Документация построена как три вложенных уровня, и у каждого свой набор токенов.
+The traversal was taken on a 157-variable collection — before the reconciliation with the main
+file, where there are 164. 106 of them were bound to nodes. Not a single variable of the groups
+`global/space`, `global/radius`, `global/gap`, `global/border` **is bound directly anywhere**.
 
-| Уровень | Что это на странице | Фон | Отступы | Радиус | Граница |
+That is not an omission but the design. The canvas sees only the semantics — `doc/header/*`,
+`doc/content/*`, `layer-02/*`, `layer-03/*` — and those alias onto `global/*`.
+
+Two consequences follow, both of which matter for a theme:
+
+- **An edit to `global` reaches everything** hanging off it, in one move. That is what the tier
+  exists for.
+- **A flattened alias muffles the edit.** In `enterprise` three header variables are flattened
+  into values — an edit to `global/space` will not reach them. Do not repeat this.
+
+---
+
+## Three levels of nesting
+
+The documentation is built as three nested levels, each with its own token set.
+
+| Level | What it is on the page | Background | Padding | Radius | Border |
 |---|---|---|---|---|---|
-| **страница** | сам фрейм `ds-doc/*` | `colors/layer/ds-layer-01` | `doc/header/*`, `doc/content/*` | `doc/radius/*` | `doc/ds-doc-border` + `colors/border/ds-border-01` |
-| **карточка** | `ds-doc/specification/component`, `ds-doc/changelog/log` | `colors/layer/ds-layer-02` | `layer-02/layer/ds-layer-content-*` | `layer-02/radius/*` | `ds-layer-content-border` + `ds-border-02` |
-| **чип** | `ds-doc/specification/component/state`, `ds-doc/components/label`, аватар | — | `layer-03/layer/*` | `layer-03/radius/*` | `layer-03` border + `ds-border-03` |
+| **page** | the `ds-doc/*` frame itself | `colors/layer/ds-layer-01` | `doc/header/*`, `doc/content/*` | `doc/radius/*` | `doc/ds-doc-border` + `colors/border/ds-border-01` |
+| **card** | `ds-doc/specification/component`, `ds-doc/changelog/log` | `colors/layer/ds-layer-02` | `layer-02/layer/ds-layer-content-*` | `layer-02/radius/*` | `ds-layer-content-border` + `ds-border-02` |
+| **chip** | `ds-doc/specification/component/state`, `ds-doc/components/label`, the avatar | — | `layer-03/layer/*` | `layer-03/radius/*` | `layer-03` border + `ds-border-03` |
 
-Секция документации, в которую складываются страницы, — четвёртый уровень, и она на
-`colors/section/*` плюс `global/radius/ds-radius-section`. В паттернах её нет: секцию создаёт
-скилл сборки документации, поэтому в обходе `colors/section/*` не встречаются.
+The documentation section that the pages go into is a fourth level, and it sits on
+`colors/section/*` plus `layers/section/*` — three radii, three border widths, three border
+colours. The patterns do not contain it: the section is created by the documentation build
+skill, which is why `colors/section/*` never shows up in the traversal.
 
 ---
 
-## Типографика: какая ступень где живёт
+## Typography: where each step lives
 
-Двенадцать ступеней кегля — не абстрактная шкала, у каждой своё место.
+The twelve size steps are not an abstract scale — each has its place.
 
-| Ступень | Где применена |
+| Step | Where it is applied |
 |---|---|
-| `size-title` | **только** заголовок шапки страницы: `Changelog`, `Specification`, … |
-| `size-subtitle-01` | заголовки блоков внутри страницы — `ds-paragraph` H1 |
-| `size-subtitle-04` | подписи осей `ds-doc-component-label`, заголовки в спецификации |
-| `size-body-01` | **основной текст**: описания под заголовками, подзаголовок шапки |
-| `size-body-02` | вторичный текст: строки состояний, блок `Name` |
-| `size-mono-02 2` | версия и дата в `ds-log`, моно-строки в `Name` |
-| `size-subtitle-02`, `-03`, `size-body-03` | ступени про запас, в паттернах не встречаются |
-| `size-body-04`, `paragraphy-spacing-body-*` | не привязаны нигде |
+| `size-title` | **only** the page header title: `Changelog`, `Specification`, … |
+| `size-subtitle-01` | block headings inside a page — `ds-doc/specification/paragraph` H1 |
+| `size-subtitle-04` | the axis labels of `ds-doc/components/label`, headings in the specification |
+| `size-body-01` | **the body text**: descriptions under headings, the header subtitle |
+| `size-body-02` | secondary text: state rows, the `ds-doc/components/name` block |
+| `size-mono-02 2` | version and date in `ds-doc/changelog/log`, mono rows in the name block |
+| `size-subtitle-02`, `-03`, `size-body-03` | spare steps, not met in the patterns |
+| `size-body-04`, `paragraphy-spacing-body-*` | bound nowhere |
 
-Кегль, интерлиньяж, трекинг и вес одной ступени всегда ходят вместе: у текстового узла
-привязаны сразу `fontSize`, `lineHeight`, `letterSpacing`, `fontWeight`, `fontFamily`.
-Менять кегль без интерлиньяжа нельзя — строки слипнутся.
+Size, line height, tracking and weight of one step always travel together: a text node has
+`fontSize`, `lineHeight`, `letterSpacing`, `fontWeight`, `fontFamily` bound at once. Changing
+the size without the line height is not allowed — the lines would collapse into each other.
 
-Гарнитуры по ролям: `font-title` — заголовок шапки. `font-subtitle` — заголовки блоков.
-`font-body` — весь основной текст. `font-mono` — версия, дата, служебные строки.
+Families by role: `font-title` — the page header title. `font-subtitle` — block headings.
+`font-body` — all body text. `font-mono` — version, date, utility rows.
 
 ---
 
-## Цвет: какой токен где виден
+## Colour: which token is visible where
 
-| Токен | Где |
+| Token | Where |
 |---|---|
-| `base-primary` | основной текст и иконки |
-| `base-secondary` | вторичный текст, подписи |
-| `base-tertiary` | третичный: подзаголовок шапки, вспомогательное |
-| `accent-primary` | блок `Name`, подписи осей и их обводка, иконка `ds-icon-components` |
-| `accent-secondary`, `-tertiary` | в паттернах не привязаны; `-tertiary` доступен форме |
-| `layer-01` | фон страницы |
-| `layer-02` | фон карточек |
-| `layer-03` | в паттернах не встречается — уровень задан отступами, не фоном |
-| `border-01` / `-02` / `-03` | обводка страницы / карточки / чипа |
-| `cover/ds-gradient-01`, `-02` | градиент шапки и `ds-doc-header-cover` |
-| `section/*` | секция документации, вне паттернов |
+| `base-primary` | body text and icons |
+| `base-secondary` | secondary text, captions |
+| `base-tertiary` | tertiary: the header subtitle, auxiliary text |
+| `accent-primary` | the `ds-doc/components/name` block, the axis labels and their stroke, the `ds-icon-components` icon |
+| `accent-secondary`, `-tertiary` | not bound in the patterns; `-tertiary` is available to the shape |
+| `layer-01` | the page background |
+| `layer-02` | the card background |
+| `layer-03` | not met in the patterns — the level is set by padding, not by background |
+| `border-01` / `-02` / `-03` | the border of the page / card / chip |
+| `cover/ds-gradient-01`, `-02` | the gradient of the header and of `ds-doc/header/cover` |
+| `section/*` | the documentation section, outside the patterns |
 
-**Акцент виден в трёх местах.** В `lite` он алиасится на `base-primary`, то есть акцента
-как явления нет. Задавая акцент в новой теме, вы красите имя компонента, подписи осей и иконку —
-и больше ничего. Это скромнее, чем кажется.
-
----
-
-## Тексты
-
-`text/ds-name` привязан к **дефолту свойства** `Chapter#814:13` компонента `ds-doc-header` —
-поэтому имя дизайн-системы появляется в шапке каждой страницы само.
-
-`text/docs-header/*/title` и `/description` привязаны на уровне свойств **инстанса** шапки
-внутри каждого паттерна, а не на узлах. Обход по `node.boundVariables` их не видит — это
-особенность обхода, а не признак неиспользуемости.
+**The accent is visible in three places.** In `lite` it aliases onto `base-primary`, that is,
+the accent does not exist as a phenomenon. Setting an accent in a new theme, you paint the
+component name, the axis labels and one icon — and nothing else. That is more modest than it
+sounds.
 
 ---
 
-## Форма
+## Texts
 
-`shape/*` управляет узлом `Background Pattern` внутри карточек. `ds-shape` включает его,
-`-size` и `-scale` задают геометрию, цвета — алиасы на `accent-tertiary` и `layer-02`.
+`text/ds-name` is bound to the **property default** `Chapter#814:13` of the `ds-doc/header`
+component — which is why the design-system name shows up in the header of every page by itself.
+
+`text/docs-header/*/title` and `/description` are bound at the property level of the header
+**instance** inside each pattern, not on nodes. A traversal over `node.boundVariables` does not
+see them — a peculiarity of the traversal, not a sign of disuse.
 
 ---
 
-## Как этим пользоваться при генерации темы
+## Shape
 
-Обратный порядок: от того, что видно на референсе, к тому, что писать.
+`shape/*` drives the `Background Pattern` node inside cards. `ds-shape` switches it on,
+`-size` and `-scale` set the geometry, the colours are aliases onto `accent-tertiary` and
+`layer-02`.
 
-| Увидел на картинке | Пишешь |
+---
+
+## How to use this when generating a theme
+
+Reverse order: from what is visible on the reference to what to write.
+
+| Seen on the picture | You write |
 |---|---|
-| фон страницы | `layer-01`; фон секции вокруг — `section-01/02` |
-| карточки отделены заливкой | `layer-02`, шаг от `layer-01` задаёт `contrast` |
-| карточки отделены обводкой | `global/border/ds-border-02` + `colors/border/ds-border-02` |
-| скруглённые карточки | `global/radius/ds-doc-global-radius-02` (через `layer-02/radius/*`) |
-| скруглённая страница | `ds-doc-global-radius-01` (через `doc/radius/*`) |
-| воздух между блоками | `global/gap/ds-doc-global-gap-01` (через `doc/content/gap`) |
-| поля страницы | `global/space/ds-doc-global-space-01` (через `doc/header` и `doc/content`) |
-| плотность внутри карточки | `global/space/ds-doc-global-space-04` (через `layer-02/layer/*`) |
-| крупный заголовок | `size-title` + `line-height-title` + `weight-title` + `font-title` |
-| текст абзаца | `size-body-01` и вся его четвёрка |
-| подписи и мелочь | `size-body-02`, `size-subtitle-04` |
-| моноширинные метки | `size-mono-02 2`, `font-mono` |
-| цветное пятно-акцент | `accent-primary` — но помни: это только имя, подписи осей и иконка |
-| декоративный паттерн в карточке | `shape/ds-shape` = true, `-size`, `-scale` |
+| the page background | `layer-01`; the section background around it — `section-01/02` |
+| cards separated by fill | `layer-02`, the step from `layer-01` set by `contrast` |
+| cards separated by stroke | `global/border/ds-border-02` + `colors/border/ds-border-02` |
+| rounded cards | `global/radius/ds-doc-global-radius-02` (through `layer-02/radius/*`) |
+| a rounded page | `ds-doc-global-radius-01` (through `doc/radius/*`) |
+| air between blocks | `global/gap/ds-doc-global-gap-01` (through `doc/content/gap`) |
+| page margins | `global/space/ds-doc-global-space-01` (through `doc/header` and `doc/content`) |
+| density inside a card | `global/space/ds-doc-global-space-04` (through `layer-02/layer/*`) |
+| a large title | `size-title` + `line-height-title` + `weight-title` + `font-title` |
+| paragraph text | `size-body-01` and its whole quartet |
+| captions and small print | `size-body-02`, `size-subtitle-04` |
+| monospaced labels | `size-mono-02 2`, `font-mono` |
+| a coloured accent spot | `accent-primary` — but remember: that is only the name, the axis labels and the icon |
+| a decorative pattern in a card | `shape/ds-shape` = true, `-size`, `-scale` |
 
-**Правило.** Писать всегда в `global/*`, а не в семантику. Семантика — алиасы; правка в неё
-разрывает связь и глушит тему на одном узле.
+**The rule.** Always write into `global/*`, never into the semantics. The semantics are
+aliases; writing into them severs the link and muffles the theme on one node.

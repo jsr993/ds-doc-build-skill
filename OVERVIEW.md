@@ -77,10 +77,10 @@ Honest state as of 29 August 2026:
 | Russian Figma file | not published yet |
 | Repository | **published**, in English |
 | `spec-kit-docs` | 6.0.0, English, one skill serving both request languages |
-| `spec-kit-theme` | 0.1.0, **written in Russian** — it answers an English request, but in its own language |
-| Locale files | `spec-kit-docs/references/locales/en.md` + `ru.md` |
+| `spec-kit-theme` | 0.2.0, English; the report follows the request language |
+| Locale files | `spec-kit-docs/references/locales/en.md` + `ru.md`; `spec-kit-theme` needs none — it writes no prose into Figma |
 
-Two things are worth knowing before you rely on them. `spec-kit-docs` 6.0.0 was brought in line with the rebuilt engine by reading, not by a run — there has been no end-to-end build on the new names yet. And `spec-kit-theme` has no locales at all; giving it some is the obvious next step, not a decision anyone has taken.
+One thing is worth knowing before you rely on it: `spec-kit-docs` 6.0.0 was brought in line with the rebuilt engine by reading, not by a run — there has been no end-to-end build on the new names yet.
 
 ---
 
