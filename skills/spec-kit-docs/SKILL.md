@@ -13,7 +13,7 @@ Input — a link to a product component. Output — a SECTION of three pages ass
 
 ## Required context
 
-**Version 6.3.** `SKILL.md` and `references/` ship as one archive and are versioned together — a folder from another generation is a broken install, not a variant.
+**Version 6.4.** `SKILL.md` and `references/` ship as one archive and are versioned together — a folder from another generation is a broken install, not a variant.
 
 | File | When to read |
 |---|---|
@@ -56,17 +56,17 @@ Safeguard: after the engine is resolved, read the value of the specification hea
 5. **No numbers in text.** Sizes, spacing, radii, colours, typography → annotations with `properties` and measurements.
 6. **Never set visuals by value.** No `fills`, `fontSize`, `fontName`, `cornerRadius`, `strokeWeight` as literals: everything comes from the engine through `theme` variables; a hand-set value overrides the theme. Copy geometry from neighbouring engine nodes. Never write into `theme`. Exception — the SECTION (5.1), and even that by binding only.
 7. **Write only inside your own SECTION.**
-8. **Facts from the component, wording from templates.** Variants, states, anatomy and property order come only from the inventory; inventing them is forbidden. Headings and descriptions the skill writes itself using the templates in the locale file — and lists everything generated in the report. What must never be written even from a template — see «Texts».
+8. **Facts from the component, wording from templates — and every string is composed at the content-plan step.** Variants, states, anatomy and property order come only from the reading; inventing them is forbidden. Headings and descriptions the skill writes itself using the locale templates, all of it inside the plan, all of it listed in the report. The fill only places what the plan holds. What must never be written even from a template — see «Texts».
 9. **Incrementally.** A page is built over several calls when its block count demands it — the call contract's «a page is never built whole in one call» wins over the old one-call habit. A screenshot check closes every page, not every call.
 10. **Return the IDs** of every node created.
 
 ## Pipeline
 
 ```
-0 Readiness → 1 Input and inventory → 2 Staging → 3 Three pages → 4 Handover
+0 Readiness → 1 Reading → 2 Content plan → 3 Staging → 4 Fill → 5 Handover
 ```
 
-Each step reports its facts before acting — what was read, what was found, what is about to be written. A report is not a question: state the facts and continue. **From link to finished section there are no confirmations of any kind** — the build runs to the end. Stops happen only where «stop» is written, and every one of them is a dead end, not a checkpoint: unreadable references, no library, input that is not a component, a missing `ds-*` or variable. Nothing is written to the file before step 2 closes.
+Each step reports its facts before acting — what was read, what was found, what is about to be written. A report is not a question: state the facts and continue. **From link to finished section there are no confirmations of any kind** — the build runs to the end. Stops happen only where «stop» is written, and every one of them is a dead end, not a checkpoint: unreadable references, no library, input that is not a component, a missing `ds-*` or variable. The threshold is two-sided: nothing is written to the file before the content plan closes, and no new wording is composed after it closes.
 
 ### 0. Readiness
 
@@ -99,7 +99,7 @@ The engine is recognised **by the `theme` collection, not by library name**: the
 
 A library cannot be attached from code — only a human through the UI. So the check ends with a request, not an attempted fix.
 
-### 1. Input and inventory
+### 1. Reading — the component top-down
 
 `fileKey` and `node-id` from the URL (hyphen between numbers → colon). No `node-id` — ask for it.
 
@@ -112,7 +112,14 @@ A library cannot be attached from code — only a human through the UI. So the c
 
 Stop = create nothing, do not descend into the node, do not guess. Name the type and name of what arrived, say a component link is needed, finish. Reason: the same node later goes into `Slot Component` (6.3) — an instance or frame cannot go there.
 
-**Inventory (read-only, recipe 1).** Capture: name, `key`, `description`, `documentationLinks`; `componentPropertyDefinitions`; the actual variant combinations (not the cartesian product); the `defaultVariant` layer tree to depth 3; nested instances; tokens via `get_variable_defs`.
+**One read-only pass (recipe 1), in the order the properties panel shows the component — top to bottom:**
+
+1. name, `key`, `description`, `documentationLinks`;
+2. every property in declaration order — the panel order: type, values, default;
+3. the actual variant combinations, never the cartesian product;
+4. the `defaultVariant` layer tree to depth 3, nested instances — the anatomy;
+5. how the variants differ along each axis: which layers appear, which swap, what resizes;
+6. tokens via `get_variable_defs`.
 
 **Preserve property order verbatim** — specification blocks follow it. Do not sort.
 
@@ -120,7 +127,25 @@ Stop = create nothing, do not descend into the node, do not guess. Name the type
 
 Report before moving on: name, variant count, axes with values, properties in declaration order, where the lead comes from.
 
-### 2. Staging (recipes 2, 2a)
+### 2. Content plan — every string before any node
+
+Compose the entire content of the three pages before touching the canvas, in the same
+top-down order the component was read:
+
+- the changelog entry: version, type, date, description;
+- the lead;
+- anatomy: one entry per configuration, with the annotation text for every layer — the first
+  entry carries the shared architecture, each next one only its differences;
+- one block per VARIANT axis in declaration order: the heading from the glossary, the
+  description from the template, every row with its final text and its Show Description value;
+- the components page: the axes read from the set's geometry, the label list per level.
+
+Every string carries a source mark: from the component / from a template / empty — a gap.
+The plan is reported as a report, not a question, and it closes the composing phase: after
+it, no new wording. A string found missing during the fill is a plan error — return here and
+extend the plan; improvising on canvas is forbidden.
+
+### 3. Staging (recipes 2, 2a)
 
 Engine resolution: by key for a library (`importComponentByKeyAsync` / `importComponentSetByKeyAsync`), by name over pages for a local copy. **Components of an attached library cannot be found by name** — the Plugin API does not enumerate them; only key import works.
 
@@ -148,7 +173,10 @@ Alignment `INSIDE` is the one engine constant left on the stroke. Everything els
 
 Layout: 100 padding from the section edge on all sides, pages left to right with a 200 step.
 
-### 3. Three pages — each built incrementally
+### 4. Fill — three pages, each built incrementally
+
+The fill composes nothing: every string, every row and every axis label comes from the
+content plan. What this step decides is only mechanics — instances, slots, sizing.
 
 Pattern instance → `detachInstance()` → fill `Content`. Detach is mandatory: patterns have no public properties and the number of blocks is unknown in advance. After detach `Header` remains a `ds-doc/header` instance — do not touch it.
 
@@ -220,7 +248,7 @@ Bracket heights and gaps come from the same geometry: a level's label spans its 
 
 On a **rebuild** the set moves out of the previous section's slot into the new one — a node lives in one place only. The old section keeps its pages and labels with an empty `Slot Component`; say so in the report and offer to delete it. Do not delete it unasked.
 
-### 4. Handover
+### 5. Handover
 
 **Fit the section last**, when all heights are final: size = content bounds plus 100 on each side, via `resizeWithoutConstraints`. `SECTION` has no auto-layout and never hugs by itself.
 

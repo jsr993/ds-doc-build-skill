@@ -85,7 +85,7 @@ found, missing. Never pick similar names, never substitute home-made frames.
 ## Pipeline
 
 ```
-0 Readiness → 1 Inventory → 2 Staging → 3 Three pages → 4 Handover
+0 Readiness → 1 Reading → 2 Content plan → 3 Staging → 4 Fill → 5 Handover
 ```
 
 Each step reports its facts before acting; a report is not a question. Stops are dead ends, not
@@ -96,13 +96,25 @@ checkpoints: no engine, input that is not a component, a missing `ds-doc/*` or v
 Confirm the engine: the `theme` collection plus the `ds-doc/*` components, locally or via the
 attached library. Name which in the report.
 
-### 1. Inventory
+### 1. Reading — the component top-down
 
-Read from the component: name, description, the variant axes **in property declaration order**
-with their values, the actual variant count, the non-variant properties, the default variant's
-layer tree. Report the inventory, then continue — do not wait for approval.
+One read-only pass, in the order the properties panel shows the component: name and
+description; every property in declaration order — the panel order — with type, values and
+default; the actual variant count; the default variant's layer tree — the anatomy; how the
+variants differ along each axis. Report the reading, then continue — do not wait for approval.
 
-### 2. Staging
+### 2. Content plan — every string before any node
+
+Compose the entire content of the three pages before touching the canvas, in the same
+top-down order: the changelog entry; the lead; the anatomy annotation texts, shared
+architecture once and then differences only; one block per VARIANT axis in declaration
+order with every row's final text; the components-page axes read from the set's geometry
+with the label list per level. Every string carries a source mark: from the component, from
+a template, or empty — a gap. The plan is a report, not a question, and it closes the
+composing phase: after it no new wording, before it closes no writes. A string found missing
+during the fill is a plan error — return and extend the plan, never improvise on canvas.
+
+### 3. Staging
 
 **Rebuild check:** a SECTION named after the component already on the page means a rebuild —
 take the version base from the top entry of its changelog page, build the new section beside
@@ -129,7 +141,10 @@ the new component section inside it, matching its siblings' spacing.
 Layout: 100 padding from the section edge, pages left to right with a 200 step, section fitted
 to content as the very last step.
 
-### 3. The three pages
+### 4. Fill — the three pages
+
+The fill composes nothing: every string, row and label comes from the content plan; this
+step decides only mechanics.
 
 Each page: instantiate the pattern → detach the page wrapper (the atoms inside stay
 instances) → rename the frame to the header's `Title` value → clear the demo content →
@@ -185,7 +200,7 @@ Axes: <axes>.» / «Первая версия компонента. Оси: <п�
   clusters, outermost level first; bracket heights match cluster heights. Labels are verbatim
   variant values. Keep every caption on one line — widen the label rather than let it wrap.
 
-### 4. Handover
+### 5. Handover
 
 Fit the section to its content plus 100 on each side. Report: where the section is, the three
 pages, block and variant counts, **the list of generated texts**, source typos noticed, gaps
