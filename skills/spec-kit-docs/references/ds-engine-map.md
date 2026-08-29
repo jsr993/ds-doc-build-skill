@@ -97,11 +97,20 @@ key `b8bdac5b67d2df799fd2b2c1e2acf1126afabf19`. **Never touch it.**
 `ds-doc/header/cover`, key `3a434300661b9230d1addd25a23d9e9568c2861a` — decoration inside the
 header, carries the two-stop gradient.
 
-**Defect in the source file, 2026-08-28.** `text/docs-header/` holds `changelog`,
-`specification`, `interation` and `tips-practices` — but **not** `components`. The header of
-`ds-doc/components` binds to variables that no longer resolve, and the `tips-practices` strings
-are orphans with no pattern. The frame-name rule copes: an unresolved `Title` reads as the
-literal `Components`, which is correct. Report it, do not repair it.
+**Repaired in the source file, 2026-08-29.** `text/docs-header/` now holds exactly four groups
+for the four patterns — `changelog`, `specification`, `interation`, `components`.
+
+Worth knowing, because the fault reproduces in any copy taken before that date and shows no
+symptom. The header instance of `ds-doc/components` (node `3:1639`) was bound to
+`VariableID:10038:5180` and `10038:5181`: those resolve **by name** to
+`text/docs-header/components/title` and `/description`, but were absent from the collection's
+`variableIds` — deleted variables kept alive by the reference alone. The node keeps painting the
+last known value and stops answering a mode switch, so nothing looks wrong. The fix is to
+recreate the pair, copy the scopes from `text/docs-header/specification/title`, and rebind
+through `createVariableAlias`.
+
+In an old copy the frame-name rule still copes — an unresolved `Title` reads as the literal
+`Components`, which is correct — so this is a report line, not a stop.
 
 ---
 
@@ -228,5 +237,4 @@ Search verbatim; correct only in report text.
 |---|---|
 | `ds-doc/interation` | interaction |
 | `Show Desciption#757:0` | Description |
-| `text/docs-header/components/*` | missing — the header binds to deleted variables |
-| `text/docs-header/tips-practices/*` | orphans — the pattern was removed |
+| `text/docs-header/components/*` | present since 2026-08-29; absent in older copies of the file |

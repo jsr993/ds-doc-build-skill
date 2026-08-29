@@ -1,5 +1,5 @@
 ---
-name: ds-doc-build
+name: spec-kit-docs
 description: "Autonomously builds component documentation in Figma on the ds-* engine (the «Component Spec Kit» library). Input — a link to the component itself (COMPONENT_SET or COMPONENT); nothing else is required. The skill takes an inventory of variants, properties and anatomy and assembles a section of three pages: changelog, specification, components. It asks almost no questions — built for documenting many components in a row. Use when given a Figma component link and asked to «document this component in Figma», «build component docs», «generate ds-doc section», or in Russian: «собери документацию», «задокументируй компонент», «сделай страницы доки», «оформи по шаблону документации», «построй ds-doc». Requires Figma MCP with write access."
 ---
 
@@ -13,7 +13,7 @@ Input — a link to a product component. Output — a SECTION of three pages ass
 
 ## Required context
 
-**Version 5.0.** `SKILL.md` and `references/` ship as one archive and are versioned together — a folder from another generation is a broken install, not a variant.
+**Version 6.0.** `SKILL.md` and `references/` ship as one archive and are versioned together — a folder from another generation is a broken install, not a variant.
 
 | File | When to read |
 |---|---|
@@ -79,9 +79,10 @@ Each step reports its facts before acting — what was read, what was found, wha
 | `interview.md` or `designers.md` present | the folder predates 3.0 |
 | `execution.md` present | the folder predates 4.0, where it was folded into `SKILL.md` |
 | `locales/` missing | the folder predates 3.1 |
+| the folder is named `ds-doc-build` | it predates 6.0, where the skill was renamed `spec-kit-docs` |
 | no `references/` at all, or a table file missing with none of the markers above | an incomplete unpack |
 
-The stop message states: the version from `SKILL.md`, the files found, the files missing, the stale markers, and the verdict — **«reinstall the whole folder from `dist/ds-doc-build.skill`, do not unpack over the old one»** when markers are present, **«add the missing files»** when they are not.
+The stop message states: the version from `SKILL.md`, the files found, the files missing, the stale markers, and the verdict — **«reinstall the whole folder from `dist/spec-kit-docs.skill`, do not unpack over the old one»** when markers are present, **«add the missing files»** when they are not.
 
 **Never edit the required-context table to fit a broken folder.** Making the error disappear that way silently rolls the skill back a generation: the pipeline then references steps that no longer exist.
 

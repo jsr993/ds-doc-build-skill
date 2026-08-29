@@ -2,7 +2,7 @@
 
 [Русская версия →](README.ru.md)
 
-A design-system documentation engine in Figma, and the `ds-doc-build` skill that assembles that documentation for you in Claude Code.
+A design-system documentation engine in Figma, and two Claude Code skills that work on it: **`spec-kit-docs`** assembles the documentation, **`spec-kit-theme`** restyles it.
 
 Component documentation is a Figma section of three pages: `Changelog`, `Specification`, `Components`. Documentation does not exist without them, and exactly these the skill builds. Pages are never drawn from scratch: they assemble from ready-made `ds-doc/*` patterns, and every visual comes from the `theme` variable collection. Change a token — all documentation redraws at once.
 
@@ -10,15 +10,17 @@ The engine carries one more pattern — `Interaction`. The skill does not create
 
 You can build a section manually. The skill does the same thing, only faster, and it never forgets the rules.
 
+The second skill works one level down. Every visual in the documentation comes from the `theme` variable collection, and a mode of that collection is a theme. `spec-kit-theme` reads a reference image, expands it into all 164 variables and writes them as a new mode — so the same documentation can be shown in a different skin without a single page being touched.
+
 **This is a design representation of a component, not an implementation spec for developers.**
 
 - **Start here:** [OVERVIEW.md](OVERVIEW.md) — what works with what, which file goes with which repository
-- **Repository:** [github.com/jsr993/ds-doc-build-skill](https://github.com/jsr993/ds-doc-build-skill)
+- **Repository:** [github.com/jsr993/component-spec-kit](https://github.com/jsr993/component-spec-kit)
 - **The engine Figma file:** [Component Spec Kit in Figma Community](https://www.figma.com/community/file/1666170620013431022/component-spec-kit) — duplicate it
-- **Ready-made skill archive:** [`dist/ds-doc-build.skill`](dist/ds-doc-build.skill)
+- **Ready-made skill archives:** [`dist/spec-kit-docs.skill`](dist/spec-kit-docs.skill), [`dist/spec-kit-theme.skill`](dist/spec-kit-theme.skill)
 - **How it all works inside:** [ARCHITECTURE.md](ARCHITECTURE.md) — for those who develop the engine and the skill
 
-> One skill serves both languages: **the documentation language follows the language of your request**. Write in English — block content comes out English; write in Russian — Russian. Section headings, meanwhile, come from the Figma file's variables and follow its language.
+> `spec-kit-docs` serves both languages: **the documentation language follows the language of your request**. Write in English — block content comes out English; write in Russian — Russian. Section headings, meanwhile, come from the Figma file's variables and follow its language.
 
 ---
 
@@ -66,7 +68,7 @@ Annotation presets in the file: **Development** (green), **Interaction** (blue),
 
 ---
 
-## Part 2. The `ds-doc-build` skill for Claude Code
+## Part 2. The `spec-kit-docs` skill — building the documentation
 
 The skill reads the component, takes an inventory of variants and properties, and builds a section from the three `ds-doc` patterns. The source component it only reads.
 
@@ -86,11 +88,17 @@ The skill checks the library as step zero and recognises it **by the `theme` var
 
    | File | Inside | Use when |
    |---|---|---|
-   | [`ds-doc-build.skill`](dist/ds-doc-build.skill) | `SKILL.md` + `references/` at the root | unpacking by hand **into** `~/.claude/skills/ds-doc-build/` |
-   | [`ds-doc-build.zip`](dist/ds-doc-build.zip) | everything wrapped in a `ds-doc-build/` folder | uploading to a skill form, or unpacking anywhere — the folder comes with the archive |
+   | [`spec-kit-docs.skill`](dist/spec-kit-docs.skill) | `SKILL.md` + `references/` at the root | unpacking by hand **into** `~/.claude/skills/spec-kit-docs/` |
+   | [`spec-kit-docs.zip`](dist/spec-kit-docs.zip) | everything wrapped in a `spec-kit-docs/` folder | uploading to a skill form, or unpacking anywhere — the folder comes with the archive |
 
-   Each also exists under a versioned name (`ds-doc-build-5.0.0.skill`, `ds-doc-build-5.0.0.zip`) so a build on disk identifies itself without being opened. **`dist/` holds the current version only** — the build deletes older ones; git keeps the history.
+   Each also exists under a versioned name (`spec-kit-docs-6.0.0.skill`, `spec-kit-docs-6.0.0.zip`) so a build on disk identifies itself without being opened. **`dist/` holds the current version only** — the build deletes older ones; git keeps the history. `spec-kit-theme` ships in the same four shapes under its own name.
 2. **Delete the old folder first** — never unpack over it. The reference set changes between generations, and a leftover file makes the new `SKILL.md` read the folder as stale:
+
+   ```bash
+   rm -rf ~/.claude/skills/spec-kit-docs
+   ```
+
+   Coming from version 5 or earlier, the installed folder still carries the skill's previous name. Delete that one too — otherwise Claude Code lists both and fires whichever it matches first:
 
    ```bash
    rm -rf ~/.claude/skills/ds-doc-build
@@ -99,8 +107,8 @@ The skill checks the library as step zero and recognises it **by the `theme` var
 3. Unpack it into your skills folder:
 
    ```
-   macOS / Linux   ~/.claude/skills/ds-doc-build/
-   Windows         %USERPROFILE%\.claude\skills\ds-doc-build\
+   macOS / Linux   ~/.claude/skills/spec-kit-docs/
+   Windows         %USERPROFILE%\.claude\skills\spec-kit-docs\
    ```
 
    The path matters: Claude Code lists a skill only when `SKILL.md` with its frontmatter sits **directly inside** the folder. An empty folder, or files one level deeper, means the skill never appears in the picker — and no error is raised either.
@@ -108,7 +116,7 @@ The skill checks the library as step zero and recognises it **by the `theme` var
 4. Check the structure — it must look like this:
 
    ```
-   ds-doc-build/
+   spec-kit-docs/
    ├── SKILL.md
    └── references/
        ├── ds-engine-map.md
@@ -127,9 +135,12 @@ The skill checks the library as step zero and recognises it **by the `theme` var
 An alternative to the archive — clone the repository and symlink it:
 
 ```bash
-git clone https://github.com/jsr993/ds-doc-build-skill.git ~/src/ds-doc-build-skill
-ln -s ~/src/ds-doc-build-skill ~/.claude/skills/ds-doc-build
+git clone https://github.com/jsr993/component-spec-kit.git ~/src/component-spec-kit
+ln -s ~/src/component-spec-kit/skills/spec-kit-docs  ~/.claude/skills/spec-kit-docs
+ln -s ~/src/component-spec-kit/skills/spec-kit-theme ~/.claude/skills/spec-kit-theme
 ```
+
+Both skills live side by side under `skills/`, so one clone covers the pair and `git pull` updates them together.
 
 ### First-time setup
 
@@ -156,7 +167,7 @@ A link to an instance, frame, section or group will not do: the skill names the 
 
 From there you do not intervene at all. The skill reports the inventory — how many variants, which axes, in what order the specification blocks will go — and builds the three pages, showing a snapshot after each, to the end.
 
-You can also invoke the skill directly: `/ds-doc-build`.
+You can also invoke the skill directly: `/spec-kit-docs`.
 
 ### Where it will still stop
 
@@ -197,35 +208,110 @@ A section in Figma and a report: a link to the section, the three pages, block a
 
 ---
 
+## Part 3. The `spec-kit-theme` skill — restyling it
+
+Everything you see in the documentation is a `theme` variable, and a **mode** of that collection is a theme. `lite`, `enterprise` and `engineering` ship with the file; switch the mode and every page ever built redraws.
+
+`spec-kit-theme` adds a mode. You send a picture of a design you like — a screenshot of a site, a page from a style guide, a shot of someone else's documentation — and the skill writes a new column into `theme`.
+
+> The skill is currently written in Russian. It answers English requests, but its own text and reports are Russian.
+
+### How it works
+
+The skill does **not** read 164 values off the picture. A model asked to name 164 numbers will name 164 plausible ones, and plausible is not consistent — the scale stops being a scale.
+
+Instead the picture yields **fourteen decisions**: how light the background is, how cards are separated, how round the corners are, how dense the layout is, which families carry headings and body text, where the accent sits. Those fourteen are expanded into the full collection by fixed tables. What cannot be read off the picture is inherited from the sample mode and named as inherited in the report — never guessed.
+
+Before the brief comes a coarser choice: one of **six territories** of style, described in `references/style-space.md`. It is the frame that keeps a theme from drifting into a look the structure cannot carry.
+
+### Running it
+
+Attach an image and ask for a theme:
+
+```
+Сделай тему по этому референсу
+https://www.figma.com/design/<fileKey>/<file>
+```
+
+The skill reports the territory and the whole brief — each decision marked *read from the picture*, *from the territory*, or *inherited* — then expands, checks, and writes. That report is the thing worth reading: it is the only place where what the reference gave is separated from what the expansion decided.
+
+### What it will not do
+
+- **It never touches an existing mode.** Any write into `lite` or `enterprise` is a bug. A theme that does not work costs one mode deletion.
+- **It never breaks an alias.** The semantic tier stays aliased onto the primitives, exactly as in the sample mode; flatten an alias and the theme stops responding when a primitive is edited.
+- **It never invents a font.** Families come from Google Fonts available in Figma, and only after `listAvailableFontsAsync` confirms them; substitutions are named in the report.
+- **It never restyles the structure.** Section texts, document width and the small `layer-03` details are copied from the sample verbatim — they are not part of a theme.
+
+Checks run before anything is written: contrast (`primary` ≥ 7:1, `secondary` ≥ 4.5:1), monotone scales, fonts that exist. A failed check means a corrected brief and a second expansion, not a written mode.
+
+### Installing it
+
+Same as `spec-kit-docs`, under its own name:
+
+```
+macOS / Linux   ~/.claude/skills/spec-kit-theme/
+Windows         %USERPROFILE%\.claude\skills\spec-kit-theme\
+```
+
+```
+spec-kit-theme/
+├── SKILL.md
+└── references/
+    ├── theme-map.md        # the collection: 164 variables, the two tiers, what is not a theme
+    ├── token-usage.md      # which token drives what on canvas
+    ├── style-space.md      # the six territories and what the structure cannot carry
+    ├── expansion-rules.md  # the fourteen decisions and their expansion tables
+    └── recipes.md          # Plugin API: addMode, setValueForMode, aliases
+```
+
+This skill checks its own completeness too, and stops the same way if a reference is unreadable.
+
+---
+
 ## Repository structure
 
 ```
 .
-├── SKILL.md                      # the skill itself: pipeline, rules, checklist
-├── references/
-│   ├── ds-engine-map.md          # engine map: names, node-ids, keys, properties
-│   ├── build-recipes.md          # Figma Plugin API snippets
-│   ├── annotations.md            # annotations and measurements
-│   ├── contract-template.md      # markdown contract template
-│   └── locales/                  # the strings the skill writes into documentation
-│       ├── en.md
-│       └── ru.md
-├── dist/
-│   ├── ds-doc-build.skill        # flat: SKILL.md at the archive root
-│   ├── ds-doc-build-4.0.0.skill  # same, version in the name
-│   ├── ds-doc-build.zip          # wrapped in a ds-doc-build/ folder
-│   └── ds-doc-build-4.0.0.zip    # same, version in the name
+├── skills/
+│   ├── spec-kit-docs/                # builds the documentation
+│   │   ├── SKILL.md                  # pipeline, rules, checklist
+│   │   └── references/
+│   │       ├── ds-engine-map.md      # engine map: names, node-ids, keys, properties
+│   │       ├── build-recipes.md      # Figma Plugin API snippets
+│   │       ├── annotations.md        # annotations and measurements
+│   │       ├── contract-template.md  # markdown contract template
+│   │       └── locales/              # the strings the skill writes into documentation
+│   │           ├── en.md
+│   │           └── ru.md
+│   └── spec-kit-theme/               # restyles it
+│       ├── SKILL.md
+│       └── references/
+│           ├── theme-map.md          # the collection: 164 variables, the two tiers
+│           ├── token-usage.md        # which token drives what on canvas
+│           ├── style-space.md        # the six territories, and what is unreachable
+│           ├── expansion-rules.md    # the fourteen decisions and their expansion
+│           └── recipes.md            # Plugin API: addMode, setValueForMode, aliases
+├── dist/                             # four archives per skill, current version only
+│   ├── spec-kit-docs.skill           # flat: SKILL.md at the archive root
+│   ├── spec-kit-docs-6.0.0.skill     # same, version in the name
+│   ├── spec-kit-docs.zip             # wrapped in a spec-kit-docs/ folder
+│   ├── spec-kit-docs-6.0.0.zip       # same, version in the name
+│   └── spec-kit-theme.*              # the same four, under its own name
 ├── scripts/
-│   ├── pack.sh                   # rebuild the archive (macOS / Linux)
-│   └── pack.ps1                  # rebuild the archive (Windows)
-├── OVERVIEW.md                   # the cross-cutting doc: two halves and how they pair
-├── ARCHITECTURE.md               # solution layers, localisation, versioning
+│   ├── pack.sh                       # rebuild every archive (macOS / Linux)
+│   └── pack.ps1                      # rebuild every archive (Windows)
+├── OVERVIEW.md                       # the cross-cutting doc: the halves and how they pair
+├── ARCHITECTURE.md                   # solution layers, localisation, versioning
 ├── CHANGELOG.md
 ├── README.md
-└── README.ru.md                  # the Russian version of this file
+└── README.ru.md                      # the Russian version of this file
 ```
 
-### Rebuilding the archive after edits
+Adding a skill is adding a folder under `skills/` with a `SKILL.md` and a `references/` beside it — the pack scripts walk the directory and need no editing.
+
+### Rebuilding the archives after edits
+
+One run rebuilds every skill in `skills/`:
 
 ```bash
 ./scripts/pack.sh          # macOS / Linux

@@ -6,7 +6,7 @@ Strings the skill writes into the documentation and the report, Russian build. T
 
 | Key | Value |
 |---|---|
-| `date` | numeric `дд.мм.гг`, leading zeros required (`01`, not `1`), two-digit year. The format is dictated by the `ds-log-changelog-date` component (three text slots joined with dots), so it is identical in every locale |
+| `date` | numeric `дд.мм.гг`, leading zeros required (`01`, not `1`), two-digit year. The format is dictated by the `ds-doc/changelog/log/date` component (three text slots joined with dots), so it is identical in every locale |
 | `quotes` | `«…»` |
 | `dash` | `—` with spaces around it |
 

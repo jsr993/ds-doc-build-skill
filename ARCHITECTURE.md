@@ -12,13 +12,21 @@ Three layers that evolve separately and are bound by narrow contracts.
 
 | Layer | Where it lives | Who changes it | Contract with its neighbour |
 |---|---|---|---|
-| **The engine** | a Figma file: `ds-*` components, the `decoration` collection | the library designer | component and property names |
-| **The skill** | `SKILL.md` + `references/` | the maintainer | finds the engine by name, reads strings from locales |
-| **Distribution** | the repository, `dist/*.skill`, README | the maintainer | engine and skill versions |
+| **The engine** | a Figma file: twenty `ds-doc/*` components, the `theme` collection | the library designer | component, property and variable names |
+| **The skills** | `skills/<name>/SKILL.md` + `references/` | the maintainer | find the engine by name, read strings from locales |
+| **Distribution** | the repository, `dist/*.skill`, README | the maintainer | engine and per-skill versions |
 
 The key property: **the skill is not tied to any particular file.** It finds the engine by exact component name, not by node-id. So the same skill works in the source file, in someone's copy, and in a file where the engine is attached as a library.
 
-From this follows the main architectural constraint: **`ds-*` names and component property names are a technical contract, not text for humans.** They are never translated, normalised or corrected — typos included (`ds-doc/interation`, `Show Desciption#757:0`). Renaming any engine node breaks the skill in every copy at once.
+From this follows the main architectural constraint: **`ds-doc/*` names, component property names and `theme` variable names are a technical contract, not text for humans.** They are never translated, normalised or corrected — typos included (`ds-doc/interation`, `Show Desciption#757:0`, `paragraphy-spacing`, `size-mono-02 2`). Renaming any engine node breaks the skills in every copy at once.
+
+### Two skills, one engine
+
+The repository ships two skills that never meet inside a file. `spec-kit-docs` writes pages and never touches the `theme` collection; `spec-kit-theme` writes variables and never touches a page. They share no code — the whole coupling is the engine they both read.
+
+That coupling is the reason they share a repository. Rename a `ds-doc/*` component and the docs skill stops. Restructure `theme` and **both** stop: the docs skill loses the tokens it styles the section with, the theme skill loses its map of the collection. Engine 3.0 did exactly that, and with separate histories the same finding would have had to be carried across twice by hand.
+
+The cost is a repository where a reader must notice which skill a change belongs to. That is paid once in the folder layout — `skills/<name>/` — and in `CHANGELOG.md`, which keeps a section per skill. **There is no repository-wide version:** a single number would claim a release for the skill that did not change. Each skill's version is read from its own `## <name>` section, and the pack scripts walk `skills/` rather than being told what exists.
 
 ### The harness lives in `SKILL.md`
 
@@ -48,16 +56,16 @@ The split runs along one line: **everything the machine reads is English and sha
 
 ### Never localised
 
-- Engine component names: `ds-doc/changelog`, `ds-doc/specification`, `ds-doc/components` (built by the skill); `ds-doc/interation`, `ds-doc/tips-practices`, `ds-doc/microcopy` (manual only); `ds-doc-header`, `ds-paragraph`, `ds-doc-component`, `ds-doc-component-state`, `ds-doc-component-label`, `Name`, `ds-log`, `ds-log-designers`, `ds-log-changelog-version`, `ds-log-changelog-date`, `ds-log-label`.
+- Engine component names, all twenty under the `ds-doc/` path: the patterns `ds-doc/changelog`, `ds-doc/specification`, `ds-doc/components` (built by the skill) and `ds-doc/interation` (manual only); the atoms `ds-doc/header`, `ds-doc/header/cover`, `ds-doc/specification/paragraph`, `ds-doc/specification/component`, `ds-doc/specification/component/state`, `ds-doc/components/name`, `ds-doc/components/label`, `ds-doc/components/component-type`, `ds-doc/changelog/log`, `ds-doc/changelog/log/type`, `ds-doc/changelog/log/version`, `ds-doc/changelog/log/date`, `ds-doc/changelog/log/designers`, `ds-doc/changelog/log/designers/avatar`, `ds-doc/interaction/device`, `ds-doc/interaction/container`.
 - Component property names and suffixes: `Title#814:6`, `Show Desciption#757:0`, `Slot Component`, `Type`, `Large`, `Vertical`, `Position`.
-- `decoration` variable names: `ds-title-description/changelog/title`, `color/ds-primary`, `space/doc/content/*`. Their **values** are translated, their names never.
-- The skill's internal text: pipeline, rules, Plugin API recipes, checklist. The model reads it, not the user.
+- `theme` variable names: `text/docs-header/changelog/title`, `colors/ds-primary`, `layers/doc/content/*`. Their **values** are translated, their names never.
+- The skills' internal text: pipeline, rules, Plugin API recipes, checklist. The model reads it, not the user.
 
 ### Localised
 
 | What | Where it lives | Who translates |
 |---|---|---|
-| Documentation section headings (`Changelog`, `Specification`, …) | values of the STRING variables `ds-title-description/*/title` and `*/description` | the designer, in Figma |
+| Documentation section headings (`Changelog`, `Specification`, …) | values of the STRING variables `text/docs-header/*/title` and `*/description` | the designer, in Figma |
 | The Information page, the cover, engine component descriptions | the Figma file | the designer, in Figma |
 | Strings the skill **writes** into documentation | `references/locales/<lang>.md` | the maintainer |
 | Wording templates, the heading glossary, the report | `references/locales/<lang>.md` | the maintainer |
@@ -67,9 +75,9 @@ Page frame names the skill **never takes from the locale** — it reads the head
 
 ---
 
-## 3. One skill, not two
+## 3. One skill per language, not one per language
 
-The decision: **one skill for all languages.**
+The decision: **one `spec-kit-docs` for all languages.** (`spec-kit-theme` is a different job, not a different language — see «Two skills, one engine» above.)
 
 The difference between a Russian and an English build is three lists of strings. Everything else matches: the same pipeline, the same Plugin API recipes, the same checklist, the same traps. Two skills would mean duplicating ~100 KB of references and fixing every discovered trap twice. They would drift — exactly the drift that forced the first Chips build to be redone.
 
@@ -77,13 +85,15 @@ A second skill would be justified only if the **structure** of the documentation
 
 ### The language of the skill itself
 
-`SKILL.md` and `references/*` are **in English**. Reasons:
+`spec-kit-docs` — `SKILL.md` and `references/*` — is **in English**. Reasons:
 
 1. The model reads this text, not the user. Plugin API terms (`detachInstance`, `layoutSizingHorizontal`, `setBoundVariable`) are English anyway — mixed text adds noise on every line.
 2. The repository is open to outside contributors, and the skill is its main artefact.
 3. Everything the user sees comes from the locales, so the instruction language does not affect the user.
 
 A Russian `SKILL.md` is not maintained: two parallel instruction texts would drift apart faster than two skills.
+
+**`spec-kit-theme` is currently the exception:** it is written in Russian, has no `locales/`, and reports in Russian whatever language the request came in. That is a gap, not a decision — the reasons above apply to it identically. Its `description` already carries English trigger phrases so the skill fires on an English request; the rest of the text has yet to be moved. Until it is, the repository is not uniformly English, and the status table in [OVERVIEW.md](OVERVIEW.md) says so.
 
 ### A bilingual `description`
 
@@ -101,7 +111,7 @@ This adds no extra questions anywhere.
 
 The rule has one failure scenario: a Russian-speaking designer building documentation in an English file (or vice versa). Section headings then arrive from the file's variables in one language, while the skill writes block content in the other.
 
-So at gate G2, once the engine is resolved, the skill reads the value of `ds-title-description/specification/title` and compares it with the chosen language. A mismatch is **not an error and not a stop**: the skill adds a line to the gate report
+So at step 2, once the engine is resolved, the skill reads the value of `text/docs-header/specification/title` and compares it with the chosen language. A mismatch is **not an error and not a stop**: the skill adds a line to the step report
 
 ```
 Language:  English (the file's headings are Russian — page headings will stay Russian)
@@ -111,7 +121,7 @@ and continues. It can be overridden with a single phrase at any moment. Stopping
 
 ### What was not chosen, and why
 
-A marker variable `ds-doc/locale` in the `decoration` collection was discussed and rejected: it requires everyone who copies the file to know about the variable and remember to update it. A forgotten marker is worse than no marker — it lies with confidence. It can be revisited if the mixed-language scenario turns out to be common.
+A marker variable `ds-doc/locale` in the `theme` collection was discussed and rejected: it requires everyone who copies the file to know about the variable and remember to update it. A forgotten marker is worse than no marker — it lies with confidence. It can be revisited if the mixed-language scenario turns out to be common.
 
 ---
 
@@ -134,7 +144,7 @@ Everything language-dependent that is not a phrase.
 
 | Key | `ru` | `en` |
 |---|---|---|
-| `date` | `01.08.26` | the same: the format is dictated by the `ds-log-changelog-date` component — three text slots joined with dots; the locale does not override it. This closed the open question about the `en` date format |
+| `date` | `01.08.26` | the same: the format is dictated by the `ds-doc/changelog/log/date` component — three text slots joined with dots; the locale does not override it. This closed the open question about the `en` date format |
 | `quotes` | `«…»` | `“…”` |
 | `dash` | `—` with spaces | `—` without spaces |
 
@@ -154,7 +164,7 @@ If a string exists neither in the component nor in a template — the block stay
 
 ### `## report`
 
-Labels for gate reports and the final report (G4): «Component», «Pages», «Generated by the skill», «Source typos», «Left unfilled».
+Labels for the step reports and the final report: «Component», «Pages», «Generated by the skill», «Source typos», «Left unfilled».
 
 ### The rule for adding a language
 
@@ -167,26 +177,29 @@ A new language = one new file in `locales/` + a line in the skill's `description
 | File | Language | What differs from its sibling |
 |---|---|---|
 | Component Spec Kit | `en` | — ships first |
-| Component Spec Kit | `ru` | values of `ds-title-description/*/title` and `*/description`; the Information page; the cover; component descriptions |
+| Component Spec Kit | `ru` | values of `text/docs-header/*/title` and `*/description`; the `information` page; the cover; component descriptions |
 
-Everything else — structure, node names, the component set, the composition of the `decoration` collection, numeric token values — **must match**. The EN file is made as a Duplicate of the RU file, never rebuilt from scratch: the Russian file remains the structural source of truth even though the English one ships first. Any structural change is made in RU and carried into EN as a separate step; a structural divergence between the files is a bug.
+Everything else — structure, node names, the component set, the composition of the `theme` collection, numeric token values — **must match**. The EN file is made as a Duplicate of the RU file, never rebuilt from scratch: the Russian file remains the structural source of truth even though the English one ships first. Any structural change is made in RU and carried into EN as a separate step; a structural divergence between the files is a bug.
 
 **Both files are named identically — `Component Spec Kit`.** The file name here is not a caption but part of what a user sees when attaching the engine, so the versions must not be told apart by name: the Russian copy would stop being found by default. Distinguish the versions in Community by the publication title and description, not the file name.
 
-Why not one file with language modes: modes would switch only the headers. Documentation content is authored text inside a section — modes do not switch it. The file would need two sections per component and would bloat twice as fast.
+Why not one file with language modes: the modes of `theme` are taken — they are the themes, and `spec-kit-theme` adds to them. Even if they were free, modes would switch only the headers. Documentation content is authored text inside a section — modes do not switch it. The file would need two sections per component and would bloat twice as fast.
 
 ---
 
 ## 7. Versioning
 
-Three independent counters, never to be confused.
+Four independent counters, never to be confused.
 
 | What | Where it counts | How it grows |
 |---|---|---|
-| **Component version** | the `ds-log` entry on the Changelog page | `New` → major+1, `Changed` → minor+1, `Fixed` → patch+1. The skill computes it, never asks |
-| **Skill version** | the repository `CHANGELOG.md` | SemVer. Major — when the contract with the engine or with the locales changes |
-| **Engine version** | `CHANGELOG.md`, the «Engine» section | grows when the `ds-*` roster, their properties or the pattern structure changes |
+| **Component version** | the `ds-doc/changelog/log` entry on the Changelog page | `New` → major+1, `Changed` → minor+1, `Fixed` → patch+1. The skill computes it, never asks |
+| **`spec-kit-docs`** | `CHANGELOG.md`, its own `## spec-kit-docs` section | SemVer. Major — when the contract with the engine or with the locales changes |
+| **`spec-kit-theme`** | `CHANGELOG.md`, its own `## spec-kit-theme` section | SemVer. Major — when the shape of what it writes into `theme` changes |
+| **Engine version** | `CHANGELOG.md`, the «Engine» section | grows when the `ds-doc/*` roster, their properties or the collection structure changes |
+
+The two skills version separately on purpose: they change for different reasons and at different rates, and a shared number would announce a release for whichever one stood still. The pack scripts read each skill's version from its own section, so a release is a `### x.y.z` line plus a run of `pack`.
 
 **The compatibility rule:** the skill's major version declares which engine major version it works with. The check is already built into the pipeline — if an expected component is missing, the skill stops and returns three lists: expected, found, missing. That is the compatibility check; no separate mechanism is needed.
 
-Optional — a `ds-system/version` variable in `decoration`, so the skill can name the engine version in its report. Not a blocking decision; deferred.
+Optional — a `ds-system/version` variable in `theme`, so a skill can name the engine version in its report. Not a blocking decision; deferred. Engine 3.0 is an argument for it: both skills had to be re-read against the file to find out what had moved.

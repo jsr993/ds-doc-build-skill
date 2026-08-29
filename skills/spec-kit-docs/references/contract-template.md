@@ -67,7 +67,7 @@ Motion tokens: <motion.{context}.{direction}.{property} or Q-###>
 | ID | Question | Blocking | Recommendation |
 
 ## Source
-Figma: <links per section> · built <date>, skill `ds-doc-build`
+Figma: <links per section> · built <date>, skill `spec-kit-docs`
 ```
 
 ## Rules
