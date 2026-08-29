@@ -13,7 +13,7 @@ Input — a link to a product component. Output — a SECTION of three pages ass
 
 ## Required context
 
-**Version 6.1.** `SKILL.md` and `references/` ship as one archive and are versioned together — a folder from another generation is a broken install, not a variant.
+**Version 6.2.** `SKILL.md` and `references/` ship as one archive and are versioned together — a folder from another generation is a broken install, not a variant.
 
 | File | When to read |
 |---|---|
@@ -134,14 +134,17 @@ Then one call: `setCurrentPageAsync` (exactly once) → load fonts harvested fro
 
 #### 5.1 Styling the SECTION
 
-| Property | Variable | Engine constant |
+**One section — one tier, whole.** A component's documentation section carries tier `01` of the section tokens in every property; a family section wrapping several component sections carries tier `02` the same way. Mixing tiers within one section is an error.
+
+| Property | Variable (tier 01) | Engine constant |
 |---|---|---|
 | radius, all four corners | `layers/section/radius/ds-radius-section-01` | — |
-| bottom fill | `colors/section/ds-section-02` | opacity 1 |
-| top fill | `colors/section/ds-section-01` | opacity 0.01 |
-| stroke | `colors/section/ds-section-border-01` | opacity 0.4, weight 1, align `INSIDE` |
+| bottom fill | `colors/section/ds-section-01` | opacity 1 |
+| top fill | `colors/section/ds-section-accent` | the accent film, ~1 % — copy the exact opacity from a finished section in the file |
+| stroke colour | `colors/section/ds-section-border-01` | opacity 1 |
+| stroke weight | `layers/section/border/ds-section-border-01` | — **bound, never the literal `1`**: the theme decides whether a border exists, `lite` resolves it to 0 |
 
-Colours and radius — **only `setBoundVariable` and `setBoundVariableForPaint`**. Opacities, stroke weight and alignment are not covered by variables — they are engine constants. A variable missing from the collection — stop and name it, never substitute a hand-picked colour. If the file already has a finished documentation section, copy the settings from it: the owner's edits carry over by themselves.
+Alignment `INSIDE` is the one engine constant left on the stroke. Everything else — **only `setBoundVariable` and `setBoundVariableForPaint`**. A variable missing from the collection — stop and name it, never substitute a hand-picked colour. If the file already has a finished documentation section, copy the settings from it — with one check: the stroke colour must come from `colors/section/ds-section-border-*`, not from the section fill (found in the field: example sections carrying the fill colour on the stroke, which disappears against the background in `enterprise`).
 
 Layout: 100 padding from the section edge on all sides, pages left to right with a 200 step.
 

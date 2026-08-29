@@ -180,20 +180,29 @@ bracket heights from the cluster heights.
 
 ## 5. The documentation SECTION
 
-The section grew its own tokens. The single `ds-radius-section` is gone.
+The section grew its own tokens, three tiers of each. **Tier = nesting**: a component's
+documentation section uses `-01` throughout, a family section wrapping several component
+sections uses `-02` throughout. One section never mixes tiers.
 
-| Property | Variable |
+| Property | Variable (tier 01) |
 |---|---|
 | radius, four corners | `layers/section/radius/ds-radius-section-01` |
-| bottom fill | `colors/section/ds-section-02` |
-| top fill | `colors/section/ds-section-01` |
-| stroke weight | `layers/section/border/ds-section-border-01` |
-| stroke colour | `colors/section/ds-section-border-01` |
+| bottom fill | `colors/section/ds-section-01`, opacity 1 |
+| top fill | `colors/section/ds-section-accent` — the accent film, ~1 % (3/255 in the source file) |
+| stroke colour | `colors/section/ds-section-border-01`, opacity 1 |
+| stroke weight | `layers/section/border/ds-section-border-01` — bound |
 
-Three steps exist for each (`-01…-03`); the section uses the first. Border weight and colour
-are themed now: in `lite` the weight is `0` and the colour transparent, so the section reads as
-a plain fill; in `enterprise` and `engineering` a border appears. **Bind, never set by value.**
-The two fill opacities are the only structural constants left.
+Border weight and colour are themed: in `lite` the weight resolves to `0` and the colour is
+transparent, so the section reads as a plain fill; in `enterprise` and `engineering` a border
+appears. **Bind, never set by value** — a hardcoded weight paints a border in themes that have
+none. The fill opacities are the only structural constants left; copy the accent opacity from
+a finished section when one exists.
+
+Found in the field, 2026-08-29: the example sections in the source file bind the stroke
+**colour** to the section fill (`ds-section-01`/`-02`) instead of
+`colors/section/ds-section-border-*`. The owner's rule is the border token — against the fill
+colour a border vanishes into its own background in `enterprise`. Report it, bind the border
+token in your own section.
 
 Layout: 100 padding on all sides, pages left to right with a 200 step, fitted with
 `resizeWithoutConstraints` as the last step.

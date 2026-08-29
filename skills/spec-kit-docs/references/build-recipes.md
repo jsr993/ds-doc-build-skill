@@ -136,22 +136,27 @@ for (const id of col.variableIds) {
   const v = await figma.variables.getVariableByIdAsync(id);
   if (v) vars[v.name] = v;
 }
+// один ярус целиком: компонентная секция — 01, семейная обёртка — 02 теми же привязками
 const need = ["layers/section/radius/ds-radius-section-01", "colors/section/ds-section-01",
-              "colors/section/ds-section-02", "colors/section/ds-section-border-01"];
+              "colors/section/ds-section-accent", "colors/section/ds-section-border-01",
+              "layers/section/border/ds-section-border-01"];
 const missing = need.filter(n => !vars[n]);
 if (missing.length) return { stop: true, missing };   // never substitute hand-picked colours
 
 const solid = (opacity) => ({ type: "SOLID", color: { r: 0, g: 0, b: 0 }, opacity });
 
-// two fills: a base and a near-transparent one on top
-const f2 = figma.variables.setBoundVariableForPaint(solid(1),    "color", vars["colors/section/ds-section-02"]);
-const f1 = figma.variables.setBoundVariableForPaint(solid(0.01), "color", vars["colors/section/ds-section-01"]);
-section.fills = [f2, f1];
+// заливки: ярусная подложка + акцентная плёнка сверху (~1 %; точную прозрачность
+// копировать с готовой секции файла — в исходнике это 3/255)
+const fBase   = figma.variables.setBoundVariableForPaint(solid(1),       "color", vars["colors/section/ds-section-01"]);
+const fAccent = figma.variables.setBoundVariableForPaint(solid(3 / 255), "color", vars["colors/section/ds-section-accent"]);
+section.fills = [fBase, fAccent];
 
-const st = figma.variables.setBoundVariableForPaint(solid(0.4), "color", vars["colors/section/ds-section-border-01"]);
+// обводка: цвет — border-токен яруса, толщина — ПРИВЯЗКОЙ, не литералом:
+// тема сама решает, есть ли рамка (lite резолвит толщину в 0)
+const st = figma.variables.setBoundVariableForPaint(solid(1), "color", vars["colors/section/ds-section-border-01"]);
 section.strokes = [st];
-section.strokeWeight = 1;
 section.strokeAlign = "INSIDE";
+section.setBoundVariable("strokeWeight", vars["layers/section/border/ds-section-border-01"]);
 
 for (const corner of ["topLeftRadius", "topRightRadius", "bottomLeftRadius", "bottomRightRadius"])
   section.setBoundVariable(corner, vars["layers/section/radius/ds-radius-section-01"]);
@@ -161,7 +166,7 @@ With the engine attached as a library, local collections are empty — import th
 
 The `theme` collection is multi-mode (`lite`, `enterprise`, `engineering`) — same names, different values. The skill binds the variable; Figma resolves the value for the active mode.
 
-If the file already has a finished documentation section — copy its settings (`fills`, `strokes`, `strokeWeight`, `strokeAlign`, `boundVariables`) onto yours: the owner's edits carry over by themselves.
+If the file already has a finished documentation section — copy its settings (`fills`, `strokes`, `strokeWeight`, `strokeAlign`, `boundVariables`) onto yours: the owner's edits carry over by themselves. One check on the copy: the stroke colour must be a `colors/section/ds-section-border-*` binding — example sections have been met carrying the section fill on the stroke, and that colour vanishes against its own background in `enterprise`.
 
 Page layout: `PAD = 100` from the section edge, `GAP = 200` between pages, left to right in build order.
 
