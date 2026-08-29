@@ -154,6 +154,32 @@ Any structural change is made in the Russian file first and carried into the Eng
 
 ---
 
+## The Figma Community description — canonical copy
+
+What the Community listing's About must say. If the published text and this section disagree,
+this section wins — update the listing.
+
+> **Component Spec Kit** — a documentation engine for design-system components, plus AI skills that fill it in for you.
+>
+> Three pages per component — Changelog, Specification, and the component set itself with labelled axes — assembled from prepared ds-doc patterns. A fourth, Interaction, you assemble by hand: what goes there cannot be derived from a component. All styling comes from one variable collection, and **a mode is a theme**: three ship with the file — lite, enterprise, engineering. Switch the mode, and every page you have ever built restyles at once.
+>
+> Duplicate this file, retheme it, and document components by hand. Or install the skills and let them do the mechanical part:
+>
+> **spec-kit-docs** — send it a component link and it assembles the section autonomously, from link to finished pages, no questions asked. Facts come from the component, wording from templates; what cannot be derived is reported as a gap, never invented.
+>
+> **spec-kit-theme** — send it a reference image and it writes a new theme as a new mode: fourteen decisions read off the picture, expanded into all 164 variables. Existing modes are never touched — a failed theme costs one mode deletion.
+>
+> Both run in Claude Code, and each ships a one-file build for the Figma agent.
+>
+> This is a design representation of a component, not an implementation spec for developers.
+>
+> Skills and setup: github.com/jsr993/component-spec-kit
+>
+> **Feedback**
+> Telegram @jsr_i, email ishmirzaev.jasur@gmail.com.
+
+---
+
 ## Feedback
 
 Telegram [@jsr_i](https://t.me/jsr_i), email [ishmirzaev.jasur@gmail.com](mailto:ishmirzaev.jasur@gmail.com).
