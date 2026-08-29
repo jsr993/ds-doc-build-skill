@@ -6,13 +6,41 @@
 
 | Скилл | Движок |
 |---|---|
-| 3.x | 2.x — файл `Component Spec Kit` |
-| 2.x | 2.x — файл `Component Spec Kit` |
+| 5.x | 3.x — перестроенный `Component Spec Kit`: пути `ds-doc/*`, коллекция `theme` |
+| 3.x–4.x | 2.x — файл `Component Spec Kit` |
 | 1.x | 1.x — файл `JQ10AuRUEFp0KGoOyT3iHJ`, выведен из поддержки |
 
 ---
 
 ## Скилл
+
+### 5.0.0 — 28.08.2026
+
+Major: the engine was rebuilt. Every component name changed, two patterns were removed and the
+variable collection was restructured. Skill 4.x resolves nothing in the new file.
+
+#### Changed
+
+- **Every engine component moved under the `ds-doc/` path.** `ds-paragraph` became
+  `ds-doc/specification/paragraph`, `ds-log` became `ds-doc/changelog/log`, `ds-doc-header`
+  became `ds-doc/header`, and so on for all twenty. Keys survived the renaming, so import by key
+  still works — only the names had to be replaced.
+- **The collection is now `theme`, not `decoration`,** and ships three modes: `lite`,
+  `enterprise`, `engineering`. A mode is a theme.
+- **Variable paths rebuilt.** Geometry moved from `space | radius | gap | border/` to `layers/`;
+  colours from `color/` to `colors/`. The section grew its own tokens — three radii, three border
+  weights and three border colours — and the single `ds-radius-section` is gone.
+- **Four patterns instead of six.** `tips-practices` and `microcopy` were removed from the kit;
+  the skill still builds three and leaves `interation` to hand assembly.
+- New atom `ds-doc/changelog/log/designers/avatar` — the avatar became a variant set, so a wrong
+  designer name now also shows a wrong face. One more reason autonomous mode leaves the slot alone.
+
+#### Found in the file
+
+- `text/docs-header/components/*` no longer exists, and the `ds-doc/components` header binds to
+  deleted variables. The frame-name rule copes — an unresolved `Title` reads as the literal
+  `Components` — but the binding is broken and worth repairing in the file.
+- `text/docs-header/tips-practices/*` are orphans: the pattern is gone, the strings remain.
 
 ### 4.1.0 — 14.08.2026
 
@@ -183,3 +211,20 @@ Major, потому что сменился контракт с движком: 
 - Ключи в карте движка — от библиотеки владельца. Пользователь, опубликовавший **свою** копию файла, получит другие ключи, и импорт по ключу не пройдёт. Обходной путь — вынести любой `ds-doc/*` на холст и снять `mainComponent.key` — покрывает один компонент из восемнадцати.
 - Три паттерна движка — `interation`, `tips-practices`, `microcopy` — сборкой не создаются. Автор собирает их вручную из библиотеки.
 - Строки, которые видит пользователь, пока лежат внутри пайплайна по-русски. До выноса в `references/locales/` английская сборка невозможна.
+
+### 3.0.0 движка — 28.08.2026
+
+Файл `KNEAKDWElVE0JkNi9j0x8S`. Major: несовместим с движком 2.x.
+
+#### Изменено
+
+- Все двадцать компонентов переехали под путь `ds-doc/`. **Ключи сохранились** — импорт по ключу работает, менялись только имена.
+- Коллекция `decoration` → `theme`, 164 переменных, три мода: `lite`, `enterprise`, `engineering`.
+- Геометрия: `space | radius | gap | border/` → `layers/`. Цвета: `color/` → `colors/`.
+- Секция получила свою ветку: `layers/section/radius/ds-radius-section-01…03`, `layers/section/border/ds-section-border-01…03`, `colors/section/ds-section-border-01…03`. Единый `ds-radius-section` удалён.
+- Аватар в записи changelog стал набором вариантов `ds-doc/changelog/log/designers/avatar`.
+
+#### Удалено
+
+- Паттерны `tips-practices` и `microcopy`. Осталось четыре, скилл собирает три.
+- `ds-row`, `ds-doc-header-cover` под старым именем (теперь `ds-doc/header/cover`).

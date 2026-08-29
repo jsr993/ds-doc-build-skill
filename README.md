@@ -4,9 +4,9 @@
 
 A design-system documentation engine in Figma, and the `ds-doc-build` skill that assembles that documentation for you in Claude Code.
 
-Component documentation is a Figma section of three pages: `Changelog`, `Specification`, `Components`. Documentation does not exist without them, and exactly these the skill builds. Pages are never drawn from scratch: they assemble from ready-made `ds-doc/*` patterns, and every visual comes from the `decoration` variable collection. Change a token — all documentation redraws at once.
+Component documentation is a Figma section of three pages: `Changelog`, `Specification`, `Components`. Documentation does not exist without them, and exactly these the skill builds. Pages are never drawn from scratch: they assemble from ready-made `ds-doc/*` patterns, and every visual comes from the `theme` variable collection. Change a token — all documentation redraws at once.
 
-The engine carries three more patterns — `Animated`, `Tips and practices`, `Microcopy`. The skill does not create them: what goes there cannot be derived from a component. Assemble them by hand from the library when you have something to say.
+The engine carries one more pattern — `Interaction`. The skill does not create it: what goes there cannot be derived from a component. Assemble it by hand from the library when you have something to say.
 
 You can build a section manually. The skill does the same thing, only faster, and it never forgets the rules.
 
@@ -27,35 +27,33 @@ You can build a section manually. The skill does the same thing, only faster, an
 ### Preparing the file
 
 1. Duplicate the engine file into your project.
-2. Change the tokens in **Local Variables → `decoration`** to match your design system: colours, spacing, radii, typography.
+2. Change the tokens in **Local Variables → `theme`** to match your design system: colours, spacing, radii, typography.
 3. Publish the file and attach it as a library — or build documentation right in the copy.
 
-**When publishing, check that the variables shipped along with the components.** The `decoration` collection must make it into the publication: if it is hidden (`Hide from publishing`) or your Figma plan does not publish variables, components will import fine and the build will stop at section styling — nothing for the skill to bind to. The symptom is exactly that: pages assemble, the section does not. You can check before building: in the consuming file open `Libraries` — the engine library must list both components and variables.
+**When publishing, check that the variables shipped along with the components.** The `theme` collection must make it into the publication: if it is hidden (`Hide from publishing`) or your Figma plan does not publish variables, components will import fine and the build will stop at section styling — nothing for the skill to bind to. The symptom is exactly that: pages assemble, the section does not. You can check before building: in the consuming file open `Libraries` — the engine library must list both components and variables.
 
 The skill finds engine components **by name**, not by id, so it works in any copy of the file. Engine names are part of the contract: never rename `ds-*`, typos included (`ds-doc/interation`, `Show Desciption#757:0`).
 
 ### How a section is built
 
-The skill neither invents page names nor keeps a list of them — it reads them from the header `Title`, which is bound to a `decoration` variable. Names therefore follow the file's theme and language; below is what the source file produces.
+The skill neither invents page names nor keeps a list of them — it reads them from the header `Title`, which is bound to a `theme` variable. Names therefore follow the file's theme and language; below is what the source file produces.
 
 | Page | Pattern | About |
 |---|---|---|
 | `Changelog` | `ds-doc/changelog` | version, change type, date, authors |
 | `Specification` | `ds-doc/specification` | lead, anatomy, one block per axis |
 | `Components` | `ds-doc/components` | the component set itself with axis labels |
-| `Animated` | `ds-doc/interation` | trigger → reaction, motion tokens — **by hand** |
-| `Tips and practices` | `ds-doc/tips-practices` | do / don't pairs — **by hand** |
-| `Microcopy` | `ds-doc/microcopy` | text rules per slot — **by hand** |
+| `Interaction` | `ds-doc/interation` | trigger → reaction, motion tokens — **by hand** |
 
-Page assembly order: pattern instance → `Detach` → fill `Content` with `ds-paragraph` and `ds-doc-component` atoms. Detach is needed because the number of blocks is unknown in advance and patterns expose no public properties. **The header inside a page stays a `ds-doc-header` instance** — leave it alone.
+Page assembly order: pattern instance → `Detach` → fill `Content` with `ds-doc/specification/paragraph` and `ds-doc/specification/component` atoms. Detach is needed because the number of blocks is unknown in advance and patterns expose no public properties. **The header inside a page stays a `ds-doc/header` instance** — leave it alone.
 
 All pages of one component go into one section, left to right, 100 from the edge, 200 between pages. A section has no auto-layout — fit it manually as the last step.
 
 ### Formatting rules
 
-1. **Never touch the header.** `Title` is the section name (`Changelog`, `Specification`, `Components`), not the component name. All three header texts are bound to `decoration` variables; any overwrite severs the link.
+1. **Never touch the header.** `Title` is the section name (`Changelog`, `Specification`, `Components`), not the component name. All three header texts are bound to `theme` variables; any overwrite severs the link.
 2. **No numbers in text.** Show sizes, spacing, radii, colours and typography with Figma annotations (with `properties` filled) and `addMeasurement` rulers. Values then update with the component, and documentation is never rewritten — blocks are only added or removed.
-3. **Never set visuals by value.** No literal `fills`, `fontSize`, `cornerRadius`. Bind to `decoration` variables only — otherwise the block falls out of the theme. The skill never writes into the `decoration` collection itself.
+3. **Never set visuals by value.** No literal `fills`, `fontSize`, `cornerRadius`. Bind to `theme` variables only — otherwise the block falls out of the theme. The skill never writes into the `theme` collection itself.
 4. **Specification block order = component property order.** No sorting, no regrouping.
 5. **Anatomy is about architecture, not the picture.** One block per configuration, annotations only on the differences. Duplicating identical annotations on every block is an error.
 6. **The Components page is one block per component.** `Slot Component` holds the component set itself, whole — not a spread of instances. A family of several sets is named with a slash: `Chips / Item`.
@@ -80,7 +78,7 @@ The skill reads the component, takes an inventory of variants and properties, an
 - **Figma MCP** with write access to the file (write to canvas).
 - A file where the `ds-*` engine is available: your copy, or an attached library.
 
-The skill checks the library as step zero and recognises it **by the `decoration` variable collection**, not by name. Your own copy published under your own name works the same as the original; «Component Spec Kit» is just the default. Neither a library nor local `ds-*` in the file — the build stops and asks to attach one: a library cannot be attached from code, the Plugin API cannot do it.
+The skill checks the library as step zero and recognises it **by the `theme` variable collection**, not by name. Your own copy published under your own name works the same as the original; «Component Spec Kit» is just the default. Neither a library nor local `ds-*` in the file — the build stops and asks to attach one: a library cannot be attached from code, the Plugin API cannot do it.
 
 ### Installing the skill
 
@@ -91,7 +89,7 @@ The skill checks the library as step zero and recognises it **by the `decoration
    | [`ds-doc-build.skill`](dist/ds-doc-build.skill) | `SKILL.md` + `references/` at the root | unpacking by hand **into** `~/.claude/skills/ds-doc-build/` |
    | [`ds-doc-build.zip`](dist/ds-doc-build.zip) | everything wrapped in a `ds-doc-build/` folder | uploading to a skill form, or unpacking anywhere — the folder comes with the archive |
 
-   Each also exists under a versioned name (`ds-doc-build-4.1.0.skill`, `ds-doc-build-4.1.0.zip`) so a build on disk identifies itself without being opened. **`dist/` holds the current version only** — the build deletes older ones; git keeps the history.
+   Each also exists under a versioned name (`ds-doc-build-5.0.0.skill`, `ds-doc-build-5.0.0.zip`) so a build on disk identifies itself without being opened. **`dist/` holds the current version only** — the build deletes older ones; git keeps the history.
 2. **Delete the old folder first** — never unpack over it. The reference set changes between generations, and a leftover file makes the new `SKILL.md` read the folder as stale:
 
    ```bash
@@ -167,7 +165,7 @@ Exactly four stops, each a dead end rather than a checkpoint:
 - the `references/` files are unreadable — the skill was unpacked incompletely;
 - the file has neither a library nor local `ds-*`;
 - the input is not a component but an instance, frame, section or group;
-- an engine component or a `decoration` variable was not found.
+- an engine component or a `theme` variable was not found.
 
 Everything else the skill decides itself and reports what it decided. A deliberate trade: across a stream of fifty components, a question per component is not care — it is a full stop.
 
@@ -189,9 +187,9 @@ Everything the skill wrote itself it lists in the report as a separate list. Tha
 
 - It never changes the source component — properties, layers, name and description are read-only. It does move the set into `Slot Component`, which changes its parent and position on the canvas and nothing else; the move is named in the report.
 - It writes nothing outside its own section.
-- It never sets visuals by value and never writes into the `decoration` collection.
+- It never sets visuals by value and never writes into the `theme` collection.
 - It never invents meaning: configuration purposes, style differences, text rules and recommendations it leaves empty and lists in the report rather than masking with a placeholder.
-- It does not build `Animated`, `Tips and practices` or `Microcopy` — those pages are made by hand.
+- It does not build `Interaction` — that page is made by hand.
 
 ### What you get
 

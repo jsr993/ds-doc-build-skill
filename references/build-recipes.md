@@ -84,10 +84,15 @@ The skill is portable: the engine is found by name, not by id. Node-ids and keys
 ```js
 // one read-only call: collect ds-* across every page of the file
 const wanted = ["ds-doc/changelog", "ds-doc/specification", "ds-doc/interation",
-                "ds-doc/tips-practices", "ds-doc/microcopy", "ds-doc/components",
-                "ds-doc-header", "ds-paragraph", "ds-doc-component", "ds-doc-component-state",
-                "ds-doc-component-label", "Name", "ds-log", "ds-log-designers",
-                "ds-log-changelog-version", "ds-log-changelog-date", "ds-log-label"];
+                "ds-doc/components", "ds-doc/header", "ds-doc/header/cover",
+                "ds-doc/specification/paragraph", "ds-doc/specification/component",
+                "ds-doc/specification/component/state", "ds-doc/components/name",
+                "ds-doc/components/label", "ds-doc/components/component-type",
+                "ds-doc/changelog/log", "ds-doc/changelog/log/designers",
+                "ds-doc/changelog/log/designers/avatar",
+                "ds-doc/changelog/log/version", "ds-doc/changelog/log/date",
+                "ds-doc/changelog/log/type", "ds-doc/interaction/device",
+                "ds-doc/interaction/container"];
 
 const found = {};
 for (const page of figma.root.children) {
@@ -121,40 +126,40 @@ await Promise.all([...fonts.values()].map(f => figma.loadFontAsync(f)));
 
 ## 2a. Staging: the section and its styling
 
-Section visuals ride on `decoration` variables. Set colours and radius **by binding only**, never by value. `setBoundVariableForPaint` returns a **new** paint — always capture the result.
+Section visuals ride on `theme` variables. Set colours and radius **by binding only**, never by value. `setBoundVariableForPaint` returns a **new** paint — always capture the result.
 
 ```js
 const col = (await figma.variables.getLocalVariableCollectionsAsync())
-  .find(c => c.name === "decoration");
+  .find(c => c.name === "theme");
 const vars = {};
 for (const id of col.variableIds) {
   const v = await figma.variables.getVariableByIdAsync(id);
   if (v) vars[v.name] = v;
 }
-const need = ["space/global/radius/ds-radius-section", "color/section/ds-section-01",
-              "color/section/ds-section-02", "color/ds-tertiary"];
+const need = ["layers/section/radius/ds-radius-section-01", "colors/section/ds-section-01",
+              "colors/section/ds-section-02", "colors/section/ds-section-border-01"];
 const missing = need.filter(n => !vars[n]);
 if (missing.length) return { stop: true, missing };   // never substitute hand-picked colours
 
 const solid = (opacity) => ({ type: "SOLID", color: { r: 0, g: 0, b: 0 }, opacity });
 
 // two fills: a base and a near-transparent one on top
-const f2 = figma.variables.setBoundVariableForPaint(solid(1),    "color", vars["color/section/ds-section-02"]);
-const f1 = figma.variables.setBoundVariableForPaint(solid(0.01), "color", vars["color/section/ds-section-01"]);
+const f2 = figma.variables.setBoundVariableForPaint(solid(1),    "color", vars["colors/section/ds-section-02"]);
+const f1 = figma.variables.setBoundVariableForPaint(solid(0.01), "color", vars["colors/section/ds-section-01"]);
 section.fills = [f2, f1];
 
-const st = figma.variables.setBoundVariableForPaint(solid(0.4), "color", vars["color/ds-tertiary"]);
+const st = figma.variables.setBoundVariableForPaint(solid(0.4), "color", vars["colors/section/ds-section-border-01"]);
 section.strokes = [st];
 section.strokeWeight = 1;
 section.strokeAlign = "INSIDE";
 
 for (const corner of ["topLeftRadius", "topRightRadius", "bottomLeftRadius", "bottomRightRadius"])
-  section.setBoundVariable(corner, vars["space/global/radius/ds-radius-section"]);
+  section.setBoundVariable(corner, vars["layers/section/radius/ds-radius-section-01"]);
 ```
 
 With the engine attached as a library, local collections are empty — import the variables by key instead: `figma.variables.importVariableByKeyAsync(key)`. Keys come from `teamLibrary.getVariablesInLibraryCollectionAsync(collection.key)`, or from the engine file's variables directly.
 
-The `decoration` collection is multi-mode (`theme v1|v2|v3`) — same names, different values. The skill binds the variable; Figma resolves the value for the active mode.
+The `theme` collection is multi-mode (`lite`, `enterprise`, `engineering`) — same names, different values. The skill binds the variable; Figma resolves the value for the active mode.
 
 If the file already has a finished documentation section — copy its settings (`fills`, `strokes`, `strokeWeight`, `strokeAlign`, `boundVariables`) onto yours: the owner's edits carry over by themselves.
 
@@ -213,11 +218,11 @@ const section = await figma.getNodeByIdAsync("SECTION_ID");
 section.appendChild(frame);
 frame.x = 0; frame.y = 0;
 
-// the header stays a ds-doc-header instance — DO NOT touch its values.
-// Title/Description come from the pattern and are bound to decoration variables.
+// the header stays a ds-doc/header instance — DO NOT touch its values.
+// Title/Description come from the pattern and are bound to theme variables.
 // Any setProps on them severs the binding and replaces the section name.
 const header = frame.findAllWithCriteria({ types: ["INSTANCE"] })
-  .find(n => n.mainComponent?.name === "ds-doc-header");
+  .find(n => n.mainComponent?.name === "ds-doc/header");
 
 // frame name = the header Title, never a list of your own
 const title = Object.entries(header.componentProperties)
@@ -237,8 +242,8 @@ for (const c of [...content.children]) c.remove();
 ## 4. A «heading + content» block for Specification
 
 ```js
-const pSet = await figma.getNodeByIdAsync("3:1246");           // ds-paragraph
-const dcSet = await figma.getNodeByIdAsync("3:1240");          // ds-doc-component
+const pSet = await figma.getNodeByIdAsync("3:1246");           // ds-doc/specification/paragraph
+const dcSet = await figma.getNodeByIdAsync("3:1240");          // ds-doc/specification/component
 
 function variantOf(set, props) {
   return set.children.find(c =>
@@ -293,14 +298,14 @@ Slot limits: `layoutMode = "GRID"` is forbidden; a `ComponentNode` cannot go in 
 
 **`slot.resetSlot()` does not empty a slot — it restores the engine demo content.** Emptying it takes one of two recipes, and picking the wrong one breaks the build. **Always clear the slot before appending anything.**
 
-**Default — a plain loop.** Works when the demo children are ordinary nodes (a `FRAME`, a shape). `Slot Structure` in `ds-doc-component` is this case: its demo is a frame named `Button`.
+**Default — a plain loop.** Works when the demo children are ordinary nodes (a `FRAME`, a shape). `Slot Structure` in `ds-doc/specification/component` is this case: its demo is a frame named `Button`.
 
 ```js
 while (slot.children.length) slot.children[0].remove();   // then append your own
 slot.appendChild(myInstance);
 ```
 
-**The marker recipe — only when the plain loop throws** `in remove: Node not found`. That happens when the demo children are **instances of the same component you are about to append**: `Slot State`, whose demo is three `ds-doc-component-state` instances.
+**The marker recipe — only when the plain loop throws** `in remove: Node not found`. That happens when the demo children are **instances of the same component you are about to append**: `Slot State`, whose demo is three `ds-doc/specification/component/state` instances.
 
 ```js
 // 1. append a plain marker frame — demo children become mortal
@@ -332,7 +337,7 @@ group.appendChild(stateHost);
 // slot surgery FIRST, properties AFTER — leaf to root (see Traps)
 const stateSlot = stateHost.findAllWithCriteria({ types: ["SLOT"] })
   .find(s => s.name === "Slot State");
-const stSet = await figma.getNodeByIdAsync("3:1259");          // ds-doc-component-state
+const stSet = await figma.getNodeByIdAsync("3:1259");          // ds-doc/specification/component/state
 
 for (const st of [{ name: "Default", desc: "" }, { name: "Disabled", desc: "Not pressable" }]) {
   const row = variantOf(stSet, { Position: "Horizontal" }).createInstance();
@@ -348,7 +353,7 @@ for (const st of [{ name: "Default", desc: "" }, { name: "Disabled", desc: "Not 
 setProps(stateHost, { "Show Title": false, "Show Desciption": false });   // host props last
 ```
 
-`Show Desciption` on `ds-doc-component` carries the typo. `ds-doc-component-state` has the correct `Show Description`. The prefix resolver handles both, but pass the names verbatim.
+`Show Desciption` on `ds-doc/specification/component` carries the typo. `ds-doc/specification/component/state` has the correct `Show Description`. The prefix resolver handles both, but pass the names verbatim.
 
 ---
 
@@ -369,7 +374,7 @@ function readTopVersion(content) {
   const top = content.children[0];
   if (!top) return null;
   const v = top.findAllWithCriteria({ types: ["INSTANCE"] })
-    .find(n => n.mainComponent?.name === "ds-log-changelog-version");
+    .find(n => n.mainComponent?.name === "ds-doc/changelog/log/version");
   if (!v) return null;
   const num = name => Number(Object.entries(v.componentProperties)
     .find(([k]) => k.split("#")[0] === name)[1].value);
@@ -391,21 +396,21 @@ const fresh = content.children[0];
 setProps(fresh, { "Description": entry.desc, "Show Description": true, "Show File": false });
 
 const v = fresh.findAllWithCriteria({ types: ["INSTANCE"] })
-  .find(n => n.mainComponent?.name === "ds-log-changelog-version");
+  .find(n => n.mainComponent?.name === "ds-doc/changelog/log/version");
 setProps(v, { "Major": String(version.major), "Minor": String(version.minor), "Patch": String(version.patch) });
 
 const pad = n => String(n).padStart(2, "0");                     // leading zeros are mandatory
 const d = fresh.findAllWithCriteria({ types: ["INSTANCE"] })
-  .find(n => n.mainComponent?.name === "ds-log-changelog-date");
+  .find(n => n.mainComponent?.name === "ds-doc/changelog/log/date");
 setProps(d, { "Day": pad(entry.date.getDate()), "Month": pad(entry.date.getMonth() + 1),
               "Year": pad(entry.date.getFullYear() % 100) });
 
 const label = fresh.findAllWithCriteria({ types: ["INSTANCE"] })
-  .find(n => n.mainComponent?.parent?.name === "ds-log-label");
+  .find(n => n.mainComponent?.parent?.name === "ds-doc/changelog/log/type");
 setProps(label, { "Type": entry.type });
 ```
 
-The `Designers` slot in autonomous mode is **not touched** — the component default stays. The `File` slot and the `✱ Image` layer inside `ds-log-designers` are never touched — `Show File` stays `false`.
+The `Designers` slot in autonomous mode is **not touched** — the component default stays. The `File` slot and the `✱ Image` layer inside `ds-doc/changelog/log/designers` are never touched — `Show File` stays `false`.
 
 ---
 
@@ -465,7 +470,7 @@ Only VARIANT axes become blocks. TEXT and INSTANCE_SWAP properties have no enume
 **Never build the grid**: `Slot Component` holds one node — the component itself. The skill labels the axes around it.
 
 ```js
-const labelSet = await figma.getNodeByIdAsync("3:1318");       // ds-doc-component-label
+const labelSet = await figma.getNodeByIdAsync("3:1318");       // ds-doc/components/label
 
 function label(text, { large = false, vertical = false } = {}) {
   const i = variantOf(labelSet, { Large: String(large), Vertical: String(vertical) }).createInstance();

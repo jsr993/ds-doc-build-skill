@@ -28,7 +28,7 @@ The only strings the skill is allowed to write without them coming from the comp
 | Key | Value |
 |---|---|
 | `anatomy.title` | Анатомия |
-| `anatomy.description` | Для ознакомления структурой компонента используйте DevMode (Shift+D) |
+| `anatomy.description` | Структуру компонента смотрите в Dev Mode (Shift+D) |
 | `lead` (when component `description` is empty) | `<Имя> — компонент с <N> вариантами по осям <оси через запятую>.` |
 | `property-block.description` | `Свойство \`<Имя>\` задаёт <заголовок блока в родительном падеже>: <значения через запятую>.` |
 | `changelog.first-entry` | `Первая версия компонента. Оси: <перечень осей>.` |
