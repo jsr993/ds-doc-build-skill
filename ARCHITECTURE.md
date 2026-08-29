@@ -66,7 +66,7 @@ The split runs along one line: **everything the machine reads is English and sha
 | What | Where it lives | Who translates |
 |---|---|---|
 | Documentation section headings (`Changelog`, `Specification`, …) | values of the STRING variables `text/docs-header/*/title` and `*/description` | the designer, in Figma |
-| The Information page, the cover, engine component descriptions | the Figma file | the designer, in Figma |
+| The `get started` page, the cover, engine component descriptions | the Figma file | the designer, in Figma |
 | Strings the skill **writes** into documentation | `references/locales/<lang>.md` | the maintainer |
 | Wording templates, the heading glossary, the report | `references/locales/<lang>.md` | the maintainer |
 | README | `README.md` (EN) + `README.ru.md` | the maintainer |
@@ -177,7 +177,7 @@ A new language = one new file in `locales/` + a line in the skill's `description
 | File | Language | What differs from its sibling |
 |---|---|---|
 | Component Spec Kit | `en` | — ships first |
-| Component Spec Kit | `ru` | values of `text/docs-header/*/title` and `*/description`; the `information` page; the cover; component descriptions |
+| Component Spec Kit | `ru` | values of `text/docs-header/*/title` and `*/description`; the `get started` page; the cover; component descriptions |
 
 Everything else — structure, node names, the component set, the composition of the `theme` collection, numeric token values — **must match**. The EN file is made as a Duplicate of the RU file, never rebuilt from scratch: the Russian file remains the structural source of truth even though the English one ships first. Any structural change is made in RU and carried into EN as a separate step; a structural divergence between the files is a bug.
 

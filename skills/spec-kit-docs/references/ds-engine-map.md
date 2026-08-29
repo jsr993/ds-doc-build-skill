@@ -3,7 +3,7 @@
 The engine ships as a Figma file: the user duplicates it, or publishes it and attaches it as a
 library. **The skill is not tied to any particular file.**
 
-Read from the source file `KNEAKDWElVE0JkNi9j0x8S` on 2026-08-28. Pages: `information`,
+Read from the source file `KNEAKDWElVE0JkNi9j0x8S` on 2026-08-28. Pages: `get started`,
 `example `, `component kit`, `cover`, plus two `---` separators. Page and section names are
 informative; the skill finds components by name over the whole document.
 

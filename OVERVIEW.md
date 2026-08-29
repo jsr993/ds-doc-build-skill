@@ -2,7 +2,7 @@
 
 This page is the entry point for both halves of the project. Read it if you arrived from the Figma Community file and need the skills, or from this repository and need the Figma file.
 
-The same story is told in two other places — the `information` page inside the Figma file, and the Figma Community description. If they ever disagree, **this page wins**.
+The same story is told in two other places — the `get started` page inside the Figma file, and the Figma Community description. If they ever disagree, **this page wins**.
 
 ---
 
