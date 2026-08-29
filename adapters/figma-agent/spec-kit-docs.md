@@ -1,6 +1,6 @@
 ---
 name: spec-kit-docs
-description: "Builds component documentation on the ds-* engine — the free «Component Spec Kit» file from Figma Community — with the Figma agent. Input — the component itself, selected or linked (COMPONENT_SET or COMPONENT). The skill takes an inventory of variants, properties and anatomy and assembles a section of three pages: changelog, specification, components. Use on «document this component», «build component docs», «собери документацию», «задокументируй компонент», «оформи по шаблону документации»."
+description: "Builds component documentation on the ds-* engine — the free «Component Spec Kit» file from Figma Community — with the Figma agent. Input — the component itself, selected or linked (COMPONENT_SET or COMPONENT). The skill reads the component top-down, composes every string as a content plan, and only then assembles a section of three pages: changelog, specification, components. Use on «document this component», «build component docs», «собери документацию», «задокументируй компонент», «оформи по шаблону документации»."
 ---
 
 # Building component documentation — Figma agent build
@@ -21,8 +21,8 @@ Input — a product component. Output — a SECTION of three pages assembled fro
 components. Nothing is drawn from scratch: patterns are instantiated and filled.
 
 **Three pages, always the same three:** `changelog`, `specification`, `components`. Documentation
-does not exist without them; the skill builds nothing else. No page selection, no plan
-confirmation — from input to finished section without stopping. The fourth pattern,
+does not exist without them; the skill builds nothing else. No page selection, no approvals —
+the content plan is reported, not confirmed, and the build runs to the end. The fourth pattern,
 `ds-doc/interation`, is assembled by hand — never by the skill.
 
 ## The engine — names are the contract
@@ -74,7 +74,7 @@ found, missing. Never pick similar names, never substitute home-made frames.
    order come only from the component. Never generate: when to use which configuration, how
    styles differ in meaning, text rules, do/don't recommendations, a layer's purpose that does
    not follow from its name. An empty block beats a plausible fabrication; list every gap in
-   the report.
+   the report. Every string is composed at the content-plan step — the fill only places it.
 8. **Names transfer verbatim**, source typos included. Noticed typos go into the report, never
    corrected in the documentation.
 9. **Language:** documentation follows the language of the request — Russian request, Russian
@@ -215,4 +215,5 @@ and manual steps left, and the set's move (from where, to where).
 5. No numbers in documentation text.
 6. Specification blocks follow property declaration order; axis labels follow set geometry.
 7. Changelog: version by rule, date `dd.mm.yy` with leading zeros, `Designers` untouched.
-8. The report lists generated texts, typos, gaps, and the move.
+8. Every placed string exists in the content plan; nothing was composed during the fill.
+9. The report lists generated texts, typos, gaps, and the move.
