@@ -157,7 +157,8 @@ Any structural change is made in the Russian file first and carried into the Eng
 ## The Figma Community description — canonical copy
 
 What the Community listing's About must say. If the published text and this section disagree,
-this section wins — update the listing.
+this section wins — update the listing. The listing field is plain text: paste without the
+markdown emphasis, and write links as full https:// URLs so Figma makes them clickable.
 
 > **Component Spec Kit** — a documentation engine for design-system components, plus AI skills that fill it in for you.
 >
