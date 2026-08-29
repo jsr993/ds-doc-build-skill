@@ -207,7 +207,10 @@ slots — new children cannot go inside an instance. Order: `createInstance()` �
 `detachInstance()` → rename the frame to the header `Title` → clear `Content` → fill.
 
 Atoms stay instances. Only the page wrapper detaches.
-`ds-doc/components` needs no detach: its `Content` is a public slot.
+`ds-doc/components` does not require a detach — its `Content` is a public slot — but
+detaching it is equally legal and is what the reference build did: the name block, the axis
+lines and the set move are deep subtree surgery, and on real nodes none of the live-instance
+slot traps apply.
 
 ---
 

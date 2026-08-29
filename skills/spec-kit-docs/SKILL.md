@@ -13,7 +13,7 @@ Input — a link to a product component. Output — a SECTION of three pages ass
 
 ## Required context
 
-**Version 6.0.** `SKILL.md` and `references/` ship as one archive and are versioned together — a folder from another generation is a broken install, not a variant.
+**Version 6.1.** `SKILL.md` and `references/` ship as one archive and are versioned together — a folder from another generation is a broken install, not a variant.
 
 | File | When to read |
 |---|---|
@@ -57,7 +57,7 @@ Safeguard: after the engine is resolved, read the value of the specification hea
 6. **Never set visuals by value.** No `fills`, `fontSize`, `fontName`, `cornerRadius`, `strokeWeight` as literals: everything comes from the engine through `theme` variables; a hand-set value overrides the theme. Copy geometry from neighbouring engine nodes. Never write into `theme`. Exception — the SECTION (5.1), and even that by binding only.
 7. **Write only inside your own SECTION.**
 8. **Facts from the component, wording from templates.** Variants, states, anatomy and property order come only from the inventory; inventing them is forbidden. Headings and descriptions the skill writes itself using the templates in the locale file — and lists everything generated in the report. What must never be written even from a template — see «Texts».
-9. **Incrementally.** One page per call; after each, capture an image and check.
+9. **Incrementally.** A page is built over several calls when its block count demands it — the call contract's «a page is never built whole in one call» wins over the old one-call habit. A screenshot check closes every page, not every call.
 10. **Return the IDs** of every node created.
 
 ## Pipeline
@@ -145,7 +145,7 @@ Colours and radius — **only `setBoundVariable` and `setBoundVariableForPaint`*
 
 Layout: 100 padding from the section edge on all sides, pages left to right with a 200 step.
 
-### 3. Three pages — one per call
+### 3. Three pages — each built incrementally
 
 Pattern instance → `detachInstance()` → fill `Content`. Detach is mandatory: patterns have no public properties and the number of blocks is unknown in advance. After detach `Header` remains a `ds-doc/header` instance — do not touch it.
 

@@ -80,7 +80,7 @@ Honest state as of 29 August 2026:
 | `spec-kit-theme` | 0.2.0, English; the report follows the request language |
 | Locale files | `spec-kit-docs/references/locales/en.md` + `ru.md`; `spec-kit-theme` needs none — it writes no prose into Figma |
 
-One thing is worth knowing before you rely on it: `spec-kit-docs` 6.0.0 was brought in line with the rebuilt engine by reading, not by a run — there has been no end-to-end build on the new names yet.
+`spec-kit-docs` has been verified end to end on the rebuilt engine: on 29 August 2026 it assembled the Chips Item section — 112 variants, three pages — in the source file, first try to the finish.
 
 ---
 

@@ -505,7 +505,14 @@ for (const lvl of levels) {
 
 The number of labels per level = the number of groups it spans. Bracket height defines the hierarchy, not column order. The innermost level is a frame with one `Line` per row block.
 
-Derive bracket heights and gaps from the source set's variant geometry (`x`/`y` of the variants) so the labels match what the reader actually sees. Give labels enough width for their text — a narrow instance wraps the caption mid-word.
+Derive bracket heights and gaps from the source set's variant geometry (`x`/`y` of the variants) so the labels match what the reader actually sees. Give labels enough width for their text — a narrow instance wraps the caption mid-word. The working cure, field-tested on the reference build (34 labels at once):
+
+```js
+const t = label.findOne(n => n.type === "TEXT");
+t.textAutoResize = "WIDTH_AND_HEIGHT";        // unwrap the caption
+label.layoutSizingHorizontal = "HUG";         // the instance follows the text
+// height stays as resized — the bracket keeps its cluster height
+```
 
 Verify label-to-variant correspondence via `variantProperties` (`{ Axis: value }`).
 
