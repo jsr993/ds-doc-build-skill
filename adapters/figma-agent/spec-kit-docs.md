@@ -1,6 +1,6 @@
 ---
 name: spec-kit-docs
-description: "Builds component documentation on the ds-* engine — the free «Component Spec Kit» file from Figma Community — with the Figma agent. Input — the component itself, selected or linked (COMPONENT_SET or COMPONENT). The skill reads the component top-down, composes every string as a content plan, and only then assembles a section of three pages: changelog, specification, components. Use on «document this component», «build component docs», «собери документацию», «задокументируй компонент», «оформи по шаблону документации»."
+description: "Builds component documentation on the ds-* engine — the free «Component Spec Kit» file from Figma Community — with the Figma agent. Input — the component itself, selected or linked (COMPONENT_SET or COMPONENT). The skill takes an inventory of variants, properties and anatomy and assembles a section of three pages: changelog, specification, components. Use on «document this component», «build component docs», «собери документацию», «задокументируй компонент», «оформи по шаблону документации»."
 ---
 
 # Building component documentation — Figma agent build
@@ -21,8 +21,8 @@ Input — a product component. Output — a SECTION of three pages assembled fro
 components. Nothing is drawn from scratch: patterns are instantiated and filled.
 
 **Three pages, always the same three:** `changelog`, `specification`, `components`. Documentation
-does not exist without them; the skill builds nothing else. No page selection, no approvals —
-the content plan is reported, not confirmed, and the build runs to the end. The fourth pattern,
+does not exist without them; the skill builds nothing else. No page selection, no plan
+confirmation — from input to finished section without stopping. The fourth pattern,
 `ds-doc/interation`, is assembled by hand — never by the skill.
 
 ## The engine — names are the contract
@@ -74,7 +74,7 @@ found, missing. Never pick similar names, never substitute home-made frames.
    order come only from the component. Never generate: when to use which configuration, how
    styles differ in meaning, text rules, do/don't recommendations, a layer's purpose that does
    not follow from its name. An empty block beats a plausible fabrication; list every gap in
-   the report. Every string is composed at the content-plan step — the fill only places it.
+   the report.
 8. **Names transfer verbatim**, source typos included. Noticed typos go into the report, never
    corrected in the documentation.
 9. **Language:** documentation follows the language of the request — Russian request, Russian
@@ -85,7 +85,7 @@ found, missing. Never pick similar names, never substitute home-made frames.
 ## Pipeline
 
 ```
-0 Readiness → 1 Reading → 2 Content plan → 3 Staging → 4 Fill → 5 Handover
+0 Readiness → 1 Inventory → 2 Staging → 3 Three pages → 4 Handover
 ```
 
 Each step reports its facts before acting; a report is not a question. Stops are dead ends, not
@@ -96,25 +96,13 @@ checkpoints: no engine, input that is not a component, a missing `ds-doc/*` or v
 Confirm the engine: the `theme` collection plus the `ds-doc/*` components, locally or via the
 attached library. Name which in the report.
 
-### 1. Reading — the component top-down
+### 1. Inventory
 
-One read-only pass, in the order the properties panel shows the component: name and
-description; every property in declaration order — the panel order — with type, values and
-default; the actual variant count; the default variant's layer tree — the anatomy; how the
-variants differ along each axis. Report the reading, then continue — do not wait for approval.
+Read from the component: name, description, the variant axes **in property declaration order**
+with their values, the actual variant count, the non-variant properties, the default variant's
+layer tree. Report the inventory, then continue — do not wait for approval.
 
-### 2. Content plan — every string before any node
-
-Compose the entire content of the three pages before touching the canvas, in the same
-top-down order: the changelog entry; the lead; the anatomy annotation texts, shared
-architecture once and then differences only; one block per VARIANT axis in declaration
-order with every row's final text; the components-page axes read from the set's geometry
-with the label list per level. Every string carries a source mark: from the component, from
-a template, or empty — a gap. The plan is a report, not a question, and it closes the
-composing phase: after it no new wording, before it closes no writes. A string found missing
-during the fill is a plan error — return and extend the plan, never improvise on canvas.
-
-### 3. Staging
+### 2. Staging
 
 **Rebuild check:** a SECTION named after the component already on the page means a rebuild —
 take the version base from the top entry of its changelog page, build the new section beside
@@ -141,10 +129,7 @@ the new component section inside it, matching its siblings' spacing.
 Layout: 100 padding from the section edge, pages left to right with a 200 step, section fitted
 to content as the very last step.
 
-### 4. Fill — the three pages
-
-The fill composes nothing: every string, row and label comes from the content plan; this
-step decides only mechanics.
+### 3. The three pages
 
 Each page: instantiate the pattern → detach the page wrapper (the atoms inside stay
 instances) → rename the frame to the header's `Title` value → clear the demo content →
@@ -200,7 +185,7 @@ Axes: <axes>.» / «Первая версия компонента. Оси: <п�
   clusters, outermost level first; bracket heights match cluster heights. Labels are verbatim
   variant values. Keep every caption on one line — widen the label rather than let it wrap.
 
-### 5. Handover
+### 4. Handover
 
 Fit the section to its content plus 100 on each side. Report: where the section is, the three
 pages, block and variant counts, **the list of generated texts**, source typos noticed, gaps
@@ -215,5 +200,4 @@ and manual steps left, and the set's move (from where, to where).
 5. No numbers in documentation text.
 6. Specification blocks follow property declaration order; axis labels follow set geometry.
 7. Changelog: version by rule, date `dd.mm.yy` with leading zeros, `Designers` untouched.
-8. Every placed string exists in the content plan; nothing was composed during the fill.
-9. The report lists generated texts, typos, gaps, and the move.
+8. The report lists generated texts, typos, gaps, and the move.
